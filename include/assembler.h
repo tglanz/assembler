@@ -1,5 +1,5 @@
-#ifndef __POCESS_H__
-#define __POCESS_H__
+#ifndef __ASSEMBLER_H__
+#define __ASSEMBLER_H__
 
 #include "core.h"
 #include "log.h"
@@ -28,4 +28,4 @@ void assemblerGenerateOutputs(State * state, const char * baseName);
 
 void assemblerFileName(char * destination, const char * baseName, const char * extension);
 
-#endif /* __POCESS_H__ */
+#endif /* __ASSEMBLER_H__ */
