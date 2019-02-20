@@ -2,7 +2,7 @@
 
 unsigned int gLogLevel = LOG_DEFAULT_LEVEL;
 
-void log_set_level(LogLevel level){
+void logSetLevel(LogLevel level){
     if (level > LOG_LEVEL_ERROR){
         level = LOG_LEVEL_ERROR;
     }

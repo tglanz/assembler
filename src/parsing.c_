@@ -1,0 +1,81 @@
+#include "parsing.h"
+
+const char EMPTY_CHARS[] = { ' ', '\t', '\n' };
+
+bool isEmptyChar(char character){
+    int idx;
+    for (idx = 0; idx < sizeof(EMPTY_CHARS) / sizeof(char); ++idx){
+        if (character != EMPTY_CHARS[idx]){
+            return false;
+        }
+    }
+
+    return true;
+}
+
+DirectiveType directiveTypeFromString(const char * string){
+    if (strcmp(string, "data") == 0){
+        return DIRECTIVE_TYPE_DATA;
+    } else if (strcmp(string, "string") == 0){
+        return DIRECTIVE_TYPE_STRING;
+    } else if (strcmp(string, "entry") == 0){
+        return DIRECTIVE_TYPE_ENTRY;
+    } else if (strcmp(string, "extern") == 0){
+        return DIRECTIVE_TYPE_EXTERN;
+    } else {
+        return DIRECTIVE_TYPE_INVALID;
+    }
+}
+
+bool isEmptyLine(const char * line) {
+    int size;
+
+    size = strlen(line);
+    if (size == 0){
+        return true;
+    }
+
+    while (--size >= 0){
+        if (!isEmptyChar(line[size])){
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool isCommentLine(const char * line){
+    return line[0] == COMMENT_CHAR;
+}
+
+ParsedDirective tryParseDirectiveLine(const char * line){
+    ParsedDirective retVal;
+    
+    int cursor, count;
+    char buffer1[MAX_LINE_LENGTH];
+    char buffer2[MAX_LINE_LENGTH];
+
+    retVal.directiveType = DIRECTIVE_TYPE_NOT_DIRECTIVE;
+
+    if (sscanf(line, "%s: .%s", buffer1, buffer2) == 2){
+        /* shall go to symbols table */
+        retVal.label = strdup(buffer1);
+        retVal.directiveType = directiveTypeFromString(buffer2);
+    } else if (sscanf(line, ".%s", buffer1) == 1){
+        retVal.directiveType = directiveTypeFromString(buffer1);
+    }
+
+    if (retVal.directiveType == DIRECTIVE_TYPE_STRING){
+        if (retVal.label == NULL){
+            if (sscanf(".%s \"%s\"", buffer1, buffer2) == 2){
+                retVal.argumentsCount = strlen(buffer2);
+                retVal.arguments = calloc(retVal.argumentsCount, sizeof(Word));
+                for (cursor = 0; cursor < retVal.argumentsCount; ++cursor){
+                    retVal.arguments[cursor].raw = buffer2[cursor];
+                }
+            }
+        }
+    }
+
+    return retVal;  
+}

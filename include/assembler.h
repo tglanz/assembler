@@ -1,31 +1,29 @@
 #ifndef __ASSEMBLER_H__
 #define __ASSEMBLER_H__
 
+#include <ctype.h>
+#include <string.h>
+
 #include "core.h"
 #include "log.h"
-#include "parser.h"
-
-#define MAX_FILE_PATH_LENGTH (256)
-#define MAX_LINE_LENGTH (80)
+#include "parsing.h"
+#include "symbols.h"
 
 typedef struct {
     unsigned int IC;
     unsigned int DC;
 
-    bool firstPassSuccess;
-    bool secondPassSuccess;
+    bool hasError;
 } State;
 
-void assemblerResetState(State * state);
-void assemblerLogState(const State * state);
+typedef enum {
+    DIRECTIVE_TYPE_DATA,
+    DIRECTIVE_TYPE_STRING,
+    DIRECTIVE_TYPE_ENTRY,
+    DIRECTIVE_TYPE_EXTERN,
+    DIRECTIVE_TYPE_INVALID
+} DirectiveType;
 
-void assemblerProcessInput(const char * baseName);
-
-void assemblerRunFirstPass(State * state, FILE * file);
-void assemblerRunSecondPass(State * state, FILE * file);
-
-void assemblerGenerateOutputs(State * state, const char * baseName);
-
-void assemblerFileName(char * destination, const char * baseName, const char * extension);
+void assembleInput(const char * baseName);
 
 #endif /* __ASSEMBLER_H__ */

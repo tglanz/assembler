@@ -8,7 +8,11 @@ int main(int argc, char ** argv){
     int idx;
 
     for (idx = 1; idx < argc; ++idx){
-        assemblerProcessInput(argv[idx]);
+        if (strcmp(argv[idx], "-vd") == 0){
+            logSetLevel(LOG_LEVEL_DEBUG);
+        } else {
+            assembleInput(argv[idx]);
+        }
     }
 
     return EXIT_CODE_UNKNOWN;
