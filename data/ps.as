@@ -1,7 +1,9 @@
 ;file ps.as
 
 .entry LENGTH
-.extern W
+SHOULDNOTBE: .entry LENGTH
+.extern W A
+.extern W A
 MAIN:       mov     @r ,LENGTH
 LOOP:       jmp     L1
             prn     -5

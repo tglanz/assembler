@@ -15,8 +15,8 @@ void growAccordingly(SymbolsVector * symbols){
             for (idx = 0; idx < symbols->size; ++idx){
                 data[idx] = symbols->data[idx];
             }
+            free(symbols->data);
         }
-        free(symbols->data);
         symbols->data = data;
     }
 }
@@ -24,8 +24,8 @@ void growAccordingly(SymbolsVector * symbols){
 SymbolsVector * symbolsVectorNew() {
     SymbolsVector * symbols = (SymbolsVector*)malloc(sizeof(SymbolsVector));;
     symbols->capacity = 0;
-    symbols->capacity = 0;
     symbols->size = 0;
+    symbols->data = NULL;
     growAccordingly(symbols);
     return symbols;
 }
@@ -63,5 +63,6 @@ bool symbolsVectorAdd(SymbolsVector * symbols, SymbolType type, const char * lab
 
     symbols->data[symbols->size] = symbol;
     ++symbols->size;
+    logDebug("added symbol: %s, value: %d, type: %d", symbol.label, symbol.value, symbol.type);
     return true;
 }

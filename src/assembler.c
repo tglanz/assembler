@@ -7,7 +7,24 @@ void generateOutputs(State * state, const char * baseName);
 void resetState(State * state);
 void updateDataSymbols(State * state);
 void createFileName(char * destination, const char * baseName, const char * extension);
-DirectiveType directiveTypeFromString(const char * string);
+
+void appendExternSymbols(SymbolsVector * symbols, int lineNumber, const char * line, const char * directive){
+    char label[MAX_LINE_LENGTH];
+    char tmp[MAX_LINE_LENGTH];
+    int idx = 1;
+
+    tryGetSplitComponent(line, '.', 1, tmp);
+    while (tryGetSplitComponent(tmp, ' ', idx, label)){
+        if (!symbolsVectorAdd(symbols, SYMBOL_TYPE_NONE, withoutWhitespace(label), 0)){
+            logWarning("line %3d: already have an extern symbol: %s", lineNumber, label);
+        }
+        ++idx;
+    }
+
+    if (idx == 1){
+        logWarning("line %3d: at least one label should be provided with an extern directive", lineNumber);
+    }
+}
 
 void assembleInput(const char * baseName) {
     /* assembler state to be carried on through the process */
@@ -53,32 +70,44 @@ void firstPass(State * state, FILE * file){
     bool hasLabel;
     bool hasDirective;
 
-    DirectiveType directiveType;
-
     /* Defaults */
-    lineNumber = 1;
+    lineNumber = 0;
 
-    while (fgets(line, MAX_LINE_LENGTH, file) != NULL){
+    while (readLine(file, line)){
         /* remove the newline at the end */
-        line[strlen(line) - 1] = '\0';
+        ++lineNumber;
+        
+        if (isEmptyLine(line) || isCommentLine(line)){
+            continue;
+        }
 
         hasLabel = tryGetLabel(line, label);
         hasDirective = tryGetDirective(line, directive);
 
         if (hasDirective){
-            switch (directiveType){
+            switch (directiveTypeFromString(directive)){
                 
-            }
-            directiveType = directiveTypeFromString(directive);
-            if (directiveType == DIRECTIVE_TYPE_DATA || directiveType == DIRECTIVE_TYPE_STRING){
-                // add to symbols,
-                // push arguments to memory
-            } else if (directiveType == DIRECTIVE_TYPE_ENTRY || directiveType == DIRECTIVE_TYPE_EXTERN){
-                // add to symbols
-            }
-        }
+                case DIRECTIVE_TYPE_ENTRY:
+                    if (hasLabel){
+                        logWarning("line %3d: entry directive should not have a label. got label `%s`",
+                            lineNumber, label);
+                    }
+                    break;
 
-        ++lineNumber;
+                case DIRECTIVE_TYPE_EXTERN:
+                    appendExternSymbols(state->symbols, lineNumber, line, directive);
+                    break;
+                    
+                case DIRECTIVE_TYPE_DATA:
+                case DIRECTIVE_TYPE_STRING:
+                    logWarning("line %3d: Not implemented directive: %s", lineNumber, directive);
+                case DIRECTIVE_TYPE_INVALID:
+                    state->hasError = true;
+                    break;
+            }
+        } else {
+
+        }
     }
 
     if (!state->hasError){
@@ -103,24 +132,11 @@ void resetState(State * state) {
     state->IC = 0;
     state->DC = 0;
     state->hasError = false;
+    state->symbols = symbolsVectorNew();
 }
 
 void createFileName(char * destination, const char * baseName, const char * extension) {
     strcpy(destination, baseName);
     strcat(destination, ".");
     strcat(destination, extension);
-}
-
-DirectiveType directiveTypeFromString(const char * string){
-    if (strcmp(string, "data") == 0){
-        return DIRECTIVE_TYPE_DATA;
-    } else if (strcmp(string, "string") == 0){
-        return DIRECTIVE_TYPE_STRING;
-    } else if (strcmp(string, "entry") == 0){
-        return DIRECTIVE_TYPE_ENTRY;
-    } else if (strcmp(string, "extern") == 0){
-        return DIRECTIVE_TYPE_EXTERN;
-    } else {
-        return DIRECTIVE_TYPE_INVALID;
-    }
 }

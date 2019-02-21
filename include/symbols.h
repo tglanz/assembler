@@ -6,12 +6,14 @@
 #include <ctype.h>
 
 #include "core.h"
+#include "log.h"
 
 #define SYMBOLS_DEFAULT_CAPACITY (4)
 
 typedef enum {
     SYMBOL_TYPE_DATA,
-    SYMBOL_TYPE_CODE
+    SYMBOL_TYPE_CODE,
+    SYMBOL_TYPE_NONE
 } SymbolType;
 
 typedef struct {
