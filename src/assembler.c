@@ -6,16 +6,16 @@ void generateOutputs(State * state, const char * baseName);
 
 void resetState(State * state);
 void updateDataSymbols(State * state);
-void createFileName(char * destination, const char * baseName, const char * extension);
 
-void appendExternSymbols(SymbolsVector * symbols, int lineNumber, const char * line, const char * directive){
+void handleExternDirective(SymbolsVector * symbols, int lineNumber, const char * line, const char * directive){
+    char arguments[MAX_LINE_LENGTH];
     char label[MAX_LINE_LENGTH];
-    char tmp[MAX_LINE_LENGTH];
     int idx = 1;
 
-    tryGetSplitComponent(line, '.', 1, tmp);
-    while (tryGetSplitComponent(tmp, ' ', idx, label)){
-        if (!symbolsVectorAdd(symbols, SYMBOL_TYPE_NONE, withoutWhitespace(label), 0)){
+    getSplitComponent(arguments, line, '.', 1);
+    while (getSplitComponent(label, arguments, ' ', idx)){
+        trimStart(label, label);
+        if (!symbolsVectorAdd(symbols, SYMBOL_TYPE_NONE, label, 0)){
             logWarning("line %3d: already have an extern symbol: %s", lineNumber, label);
         }
         ++idx;
@@ -26,23 +26,37 @@ void appendExternSymbols(SymbolsVector * symbols, int lineNumber, const char * l
     }
 }
 
+int handleDataDirective(SymbolsVector * symbols, int lineNumber, const char * line, const char * directive){
+    logWarning("handleDataDirective::TODO");
+    /*
+        get string argument -> array of words
+        put the array of words in the memory (not existant yet)
+        return how many words have been encoded into the memort
+    */
+}
+
+int handleStringDirective(SymbolsVector * symbols, int lineNumber, const char * line, const char * directive){
+    logWarning("handleDataDirective::TODO");
+    /*
+        get int arguments -> array of words
+        put the array of words in the memory (not existant yet)
+        return how many words have been encoded into the memort
+    */
+}
+
 void assembleInput(const char * baseName) {
     /* assembler state to be carried on through the process */
     State state;
-    FILE * sourceFile;
-    char filePath[MAX_FILE_PATH_LENGTH];
+    SourceFile * sourceFile;
 
     /* initialize to a known state, determined elsewhere */
     resetState(&state);
 
     logInfo("Processing: %s", baseName);
 
-    createFileName(filePath, baseName, "as");
-    logDebug("File name assumed to be: %s", filePath);
-
-    sourceFile = fopen(filePath, "r");
+    sourceFile = openSourceFile(baseName);
     if (sourceFile == NULL){
-        logError("Could not open file: %s. Aborting", filePath);
+        logError("Could not open source file %s. Aborting", baseName);
         return;
     }
 
@@ -59,32 +73,36 @@ void assembleInput(const char * baseName) {
     }
 }
 
-void firstPass(State * state, FILE * file){
+void firstPass(State * state, SourceFile * sourceFile){
     /* Decleration */
     unsigned int lineNumber;
-
     char line[MAX_LINE_LENGTH];
-    char label[MAX_LINE_LENGTH];
+
     char directive[MAX_LINE_LENGTH];
 
     bool hasLabel;
-    bool hasDirective;
+    char label[MAX_LINE_LENGTH];
 
     /* Defaults */
     lineNumber = 0;
 
-    while (readLine(file, line)){
+    while (readLine(sourceFile, line)){
         /* remove the newline at the end */
         ++lineNumber;
-        
-        if (isEmptyLine(line) || isCommentLine(line)){
+
+        if (!isMeaningfulLine(line)){
+            logDebug("irrelevant line: %3d", lineNumber);
             continue;
         }
 
-        hasLabel = tryGetLabel(line, label);
-        hasDirective = tryGetDirective(line, directive);
+        hasLabel = tryGetLabel(label, line);
+        if (hasLabel && !isValidLabel(label)){
+            logError("line %3d: invalid label, got: `%s`", lineNumber, label);
+            state->hasError = true;
+            continue;
+        }
 
-        if (hasDirective){
+        if (tryGetDirective(directive, line)){
             switch (directiveTypeFromString(directive)){
                 
                 case DIRECTIVE_TYPE_ENTRY:
@@ -95,13 +113,17 @@ void firstPass(State * state, FILE * file){
                     break;
 
                 case DIRECTIVE_TYPE_EXTERN:
-                    appendExternSymbols(state->symbols, lineNumber, line, directive);
+                    handleExternDirective(state->symbols, lineNumber, line, directive);
                     break;
                     
                 case DIRECTIVE_TYPE_DATA:
                 case DIRECTIVE_TYPE_STRING:
-                    logWarning("line %3d: Not implemented directive: %s", lineNumber, directive);
+                    if (hasLabel){
+                        symbolsVectorAdd(state->symbols, SYMBOL_TYPE_DATA, label, state->DC);
+                    }
+                    TODO:: handleDataDirective / handleStringDirective
                 case DIRECTIVE_TYPE_INVALID:
+                    logError("line %3d: invalid directive: `%s`", directive);
                     state->hasError = true;
                     break;
             }
@@ -133,10 +155,4 @@ void resetState(State * state) {
     state->DC = 0;
     state->hasError = false;
     state->symbols = symbolsVectorNew();
-}
-
-void createFileName(char * destination, const char * baseName, const char * extension) {
-    strcpy(destination, baseName);
-    strcat(destination, ".");
-    strcat(destination, extension);
 }

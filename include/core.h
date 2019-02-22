@@ -1,10 +1,6 @@
 #ifndef __CORE_H__
 #define __CORE_H__
 
-#define MAX_FILE_PATH_LENGTH (256)
-#define MAX_LINE_LENGTH (80 + 1)
-#define COMMENT_CHAR (';')
-
 #define WORD_SIZE (12)
 
 #define ENCODING_TYPE_WIDTH (2)

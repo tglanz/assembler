@@ -1,11 +1,19 @@
 #ifndef __PARSING_H__
 #define __PARSING_H__
 
+/**
+ * Functions which analyze inputs with respect to our domain
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
 #include "core.h"
+#include "sourceFile.h"
+#include "stringUtils.h"
+
+#define MAX_LABEL_LENGTH (31)
 
 typedef enum {
     DIRECTIVE_TYPE_DATA,
@@ -15,17 +23,16 @@ typedef enum {
     DIRECTIVE_TYPE_INVALID
 } DirectiveType;
 
-bool readLine(FILE * file, char * buffer);
-
-char * withoutWhitespace(char * string);
-bool tryGetSplitComponent(const char * string, char delimiter, int index, char * buffer);
+bool isWhitespaceCharacter(char character);
+bool isWhitespaceLine(const char * line);
+bool isAlphabeticalCharacter(char character, bool includeLowerCase, bool includeUpperCase);
+bool isNumericCharacter(char character);
 
 DirectiveType directiveTypeFromString(const char * string);
 
-bool isEmptyLine(char * line);
-bool isCommentLine(char * line);
+bool tryGetLabel(char * destination, const char * line);
+bool tryGetDirective(char * destination, const char * line);
 
-bool tryGetLabel(char * line, char * buffer);
-bool tryGetDirective(char * line, char * buffer);
+bool isValidLabel(const char * label);
 
 #endif /* __PARSING_H__ */

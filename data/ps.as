@@ -1,7 +1,7 @@
 ;file ps.as
 
 .entry LENGTH
-SHOULDNOTBE: .entry LENGTH
+  SHOULDNOTBE: .entry LENGTH
 .extern W A
 .extern W A
 MAIN:       mov     @r ,LENGTH

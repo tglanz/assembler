@@ -6,6 +6,7 @@
 
 #include "core.h"
 #include "log.h"
+#include "sourceFile.h"
 #include "parsing.h"
 #include "symbols.h"
 
