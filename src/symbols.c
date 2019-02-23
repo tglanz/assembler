@@ -20,7 +20,7 @@ void symbolsSetgrowAccordingly(SymbolsSet * set){
                 free(set->data);
             }
             set->data = data;
-            logDebug("symbols set set has regrown from %d to %d", set->size, set->capacity);
+            logDebug("symbols set has regrown from %d to %d", set->size, set->capacity);
         }
     }
 }

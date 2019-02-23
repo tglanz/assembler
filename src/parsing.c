@@ -44,11 +44,8 @@ bool isWhitespaceLine(const char * line){
 }
 
 bool isAlphabeticalCharacter(char character, bool includeLowerCase, bool includeUpperCase){
-    if (includeLowerCase && character >= 'a' && character <= 'z')
-        return true;
-    if (includeUpperCase && character > 'A' && character <= 'Z')
-        return true;
-    return false;
+    return (includeLowerCase && character >= 'a' && character <= 'z') ||
+           (includeUpperCase && character >= 'A' && character <= 'Z');
 }
 
 bool isNumericCharacter(char character){
@@ -56,15 +53,24 @@ bool isNumericCharacter(char character){
 }
 
 bool tryGetLabel(char * destination, const char * line) {
-    return getSplitComponent(destination, line, ':', 0);
+    if (untilCharacterExclusive(destination, line, ':')){
+        trimStart(destination, destination);
+        return true;
+    }
+    return false;
 }
 
 bool tryGetDirective(char * destination, const char * line){
-    char tmp[MAX_LINE_LENGTH];
-    if (getSplitComponent(tmp, line, '.', 1)){
-        if (getSplitComponent(destination, tmp, ' ', 0)){
-            return true;
-        }
+    return fromCharacterInclusive(destination, line, '.') &&
+           untilCharacterExclusive(destination, destination, ' ') &&
+           fromIndexInclusive(destination, destination, 1);
+}
+
+bool tryGetDirectiveArgs(char * destination, const char * line){
+    if (fromCharacterInclusive(destination, line, '.') && fromCharacterInclusive(destination, destination, ' ')){
+        trimStart(destination, destination);
+        trimRepeatedCharacter(destination, destination, ' ');
+        return true;
     }
     return false;
 }

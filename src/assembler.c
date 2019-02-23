@@ -10,41 +10,45 @@ void updateDataSymbols(AssemblyState * state);
 void handleExternDirective(AssemblyState * state, int lineNumber, const char * line){
     char arguments[MAX_LINE_LENGTH];
     char argument[MAX_LINE_LENGTH];
-    int argIndex = 1;
+    int argIndex = 0;
 
-    if (!getSplitComponent(arguments, line, '.', 1)){
-        logWarning("line %3d: at least one argument should be provided to extern directive. For example `.extern LENGTH`",
-                   lineNumber);
-    } else {
-        while (getSplitComponent(argument, arguments, ' ', argIndex)){
-            trimStart(argument, argument);
-            if (!symbolsSetInsert(state->symbols, SYMBOL_TYPE_EXTERN, argument, 0)){
-                logWarning("line %3d: already have symbol: %s", lineNumber, argument);
-            }
-            ++argIndex;
+    if (!tryGetDirectiveArgs(arguments, line) || strlen(arguments) == 0){
+        logError("line %3d: missing arguments for extern directive", lineNumber);
+        state->hasError = true;
+        return;
+    }
+    
+    while (getSplitComponent(argument, arguments, ' ', argIndex)){
+        if (!symbolsSetInsert(state->symbols, SYMBOL_TYPE_EXTERN, argument, 0)){
+            logWarning("line %3d: already have symbol: %s", lineNumber, argument);
         }
+        ++argIndex;
+    }
+
+    if (argIndex == 0){
+        logError("line %3d: expected at least one argument for extern directive",
+                 lineNumber);
+        state->hasError = true;
     }
 }
 
-
 void handleEntryDirective(AssemblyState * state, int lineNumber, const char * line){
     char arguments[MAX_LINE_LENGTH];
-    char label[MAX_LINE_LENGTH];
-    int idx = 1;
+    char argument[MAX_LINE_LENGTH];
+    int argIndex = 0;
 
-    getSplitComponent(arguments, line, '.', 1);
-    while (getSplitComponent(label, arguments, ' ', idx)){
-        trimStart(label, label);
-        if (idx > 1){
-            logWarning("line %3d: entry directive can have only a single label as argument, ignoring `%s`", lineNumber, label);
-        } else if (!symbolsSetInsert(state->symbols, SYMBOL_TYPE_ENTRY, label, 0)){
-            logWarning("line %3d: already have an extern symbol: %s", lineNumber, label);
-        }
-        ++idx;
+    if (!tryGetDirectiveArgs(arguments, line) || strlen(arguments) == 0){
+        logError("line %3d: missing arguments for entry directive", lineNumber);
+        state->hasError = true;
+        return;
     }
 
-    if (idx == 1){
-        logWarning("line %3d: at least one label should be provided with an entry directive", lineNumber);
+    while (getSplitComponent(argument, arguments, ' ', argIndex++)){
+        if (argIndex > 0){
+            logWarning("line %3d: entry directive can have only a single label as argument, ignoring `%s`", lineNumber, argument);
+        } else if (!symbolsSetInsert(state->symbols, SYMBOL_TYPE_ENTRY, argument, 0)){
+            logWarning("line %3d: already have an extern symbol: %s", lineNumber, argument);
+        }
     }
 }
 
@@ -70,13 +74,29 @@ void handleStringDirective(AssemblyState * state, int lineNumber, const char * l
     }
 }
 
-void handleDataDirective(AssemblyState * state, int lineNumber, const char * line, const char * directive){
-    logWarning("handleDataDirective::TODO");
-    /*
-        get string argument -> array of words
-        put the array of words in the memory (not existant yet)
-        return how many words have been encoded into the memort
-    */
+void handleDataDirective(AssemblyState * state, int lineNumber, const char * line){
+    char arguments[MAX_LINE_LENGTH];
+    char argument[MAX_LINE_LENGTH];
+    int argIndex = 0;
+    int integer;
+    Word word;
+
+    if (!tryGetDirectiveArgs(arguments, line) || strlen(arguments) == 0){
+        logWarning("line %3d: no arguments for data directive, skipping", lineNumber);
+        return;
+    }
+
+    while (getSplitComponent(argument, arguments, ',', argIndex++)){
+        if (sscanf(argument, "%d", &integer) != 1){
+            logError("line %3d: cannot parse argument `%s` to integer", lineNumber, argument);
+            state->hasError = true;
+            return;
+        }
+
+        word.raw = integer;
+        wordsVectorAppend(state->data, word);
+        ++state->DC;
+    }
 }
 
 void assembleInput(const char * baseName) {
@@ -128,7 +148,7 @@ void firstPass(AssemblyState * state, SourceFile * sourceFile){
         logDebug("read line: line %3d: %s", lineNumber, line);
 
         if (!isMeaningfulLine(line)){
-            logDebug("irrelevant line: %3d", lineNumber);
+            logDebug("skipping, irrelevant line: %3d", lineNumber);
             continue;
         }
 
@@ -168,7 +188,9 @@ void firstPass(AssemblyState * state, SourceFile * sourceFile){
                 case DIRECTIVE_TYPE_DATA:
                     if (hasLabel)
                         symbolsSetInsert(state->symbols, SYMBOL_TYPE_DATA, label, state->DC);
-                    
+                    handleDataDirective(state, lineNumber, line);
+                    break;
+
                 case DIRECTIVE_TYPE_INVALID:
                     logError("line %3d: invalid directive: `%s`", directive);
                     state->hasError = true;

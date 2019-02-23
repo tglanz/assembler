@@ -19,10 +19,18 @@
  * 
  * Hopefuly it can spare some bugs on my part
  */
+#include "stringUtils.h"
 
-void trimStart(char * destination, const char * string);
-bool getSplitComponent(char * destination, const char * string, char delimiter, int index);
+bool getSplitComponent(char * destination, const char * string, char delimiter, int componentIndex);
 void joinWithDelimiter(char * destination, const char * stringA, const char * stringB, char delimiter);
-
+bool substringInRange(char * destination, const char * string, int startInclusive, int endExclusive);
+int findCharacterIndex(const char * string, int offset, char character);
+bool fromIndexInclusive(char * destination, const char * string, int index);
+bool untilIndexExclusive(char * destination, const char * string, int index);
+bool fromCharacterInclusive(char * destination, const char * string, char character);
+bool untilCharacterExclusive(char * destination, const char * string, char character);
+void trimStart(char * destination, const char * string);
+void trimRepeatedCharacter(char * destination, const char * string, char character);
+void removeCharacter(char * destination, const char * string, char character);
 
 #endif /* __STRING_UTILS_H__ */
