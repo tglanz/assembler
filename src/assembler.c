@@ -133,6 +133,8 @@ void firstPass(AssemblyState * state, SourceFile * sourceFile){
     unsigned int lineNumber;
     char line[MAX_LINE_LENGTH];
 
+    char operation[MAX_LINE_LENGTH];
+    char operationArguments[MAX_LINE_LENGTH];
     char directive[MAX_LINE_LENGTH];
 
     bool hasLabel;
@@ -163,39 +165,37 @@ void firstPass(AssemblyState * state, SourceFile * sourceFile){
         }
 
         if (tryGetDirective(directive, line)){
-
             logDebug("directive assumed: %s", directive);
-
             switch (directiveTypeFromString(directive)){
                 case DIRECTIVE_TYPE_ENTRY:
-                    if (hasLabel)
-                        logWarning("line %3d: entry directive should not have a label. got label `%s`",
-                                   lineNumber,
-                                   label);
+                    if (hasLabel) {
+                        logWarning("line %3d: entry directive should not have a label. got label `%s`", lineNumber, label);
+                    }
                     handleEntryDirective(state, lineNumber, line);
                     break;
-
                 case DIRECTIVE_TYPE_EXTERN:
                     handleExternDirective(state, lineNumber, line);
                     break;
-                
                 case DIRECTIVE_TYPE_STRING:
                     if (hasLabel)
                         symbolsSetInsert(state->symbols, SYMBOL_TYPE_DATA, label, state->DC);
                     handleStringDirective(state, lineNumber, line);
                     break;
-
                 case DIRECTIVE_TYPE_DATA:
                     if (hasLabel)
                         symbolsSetInsert(state->symbols, SYMBOL_TYPE_DATA, label, state->DC);
                     handleDataDirective(state, lineNumber, line);
                     break;
-
                 case DIRECTIVE_TYPE_INVALID:
-                    logError("line %3d: invalid directive: `%s`", directive);
+                    logError("line %3d: invalid directive: `%s`", lineNumber, directive);
                     state->hasError = true;
                     break;
             }
+        } else if (tryGetOperation(operation, operationArguments, line, hasLabel)){
+            logDebug("line %3d: got operation: %s", lineNumber, operation);
+        } else {
+            logError("line %3d: unknown error, unable to parse", lineNumber);
+            state->hasError = true;
         }
     }
 

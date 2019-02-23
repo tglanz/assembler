@@ -34,6 +34,7 @@ bool isNumericCharacter(char character);
 bool tryGetLabel(char * destination, const char * line);
 bool tryGetDirective(char * destination, const char * line);
 bool tryGetDirectiveArgs(char * destination, const char * line);
+bool tryGetOperation(char * destinationOperation, char * destinatinoArguments, const char * line, bool hasLabel);
 
 bool isValidLabel(const char * label);
 

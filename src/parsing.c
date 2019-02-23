@@ -75,6 +75,33 @@ bool tryGetDirectiveArgs(char * destination, const char * line){
     return false;
 }
 
+bool tryGetOperation(char * destinationOperation, char * destinationArguments, const char * line, bool hasLabel){
+    char tmp[MAX_LINE_LENGTH];
+
+    trimRepeatedCharacter(tmp, line, ' ');
+    trimStart(tmp, tmp);
+
+    /*
+        operation name
+            entries have the following patterns:
+                1. label: operation ... -> hasLabel = true
+                2. operation ...        -> hasLabel = false
+    */
+    if (!getSplitComponent(destinationOperation, tmp, ' ', hasLabel ? 1 : 0)){
+        return false;
+    }
+
+    /* get the arguments in a normalized manner (no whitespces) */
+    fromCharacterInclusive(destinationArguments, tmp, ' ');
+    trimStart(destinationArguments, destinationArguments);
+    if (hasLabel){
+        fromCharacterInclusive(destinationArguments, destinationArguments, ' ');
+    }
+    fromIndexInclusive(destinationArguments, destinationArguments, 1);
+    removeCharacter(destinationArguments, destinationArguments, ' ');
+    return true;
+}
+
 bool isValidLabel(const char * label){
     char character;
     int size = strlen(label);
