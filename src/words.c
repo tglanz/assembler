@@ -46,5 +46,5 @@ void wordsVectorAppend(WordsVector * vector, Word word) {
     vector->data[vector->size] = word;
     ++vector->size;
     wordsVectorGrowAccordingly(vector);
-    logDebug("added word: 0x%3x", word.raw);
+    logDebug("added word: 0x%03x", word.raw);
 }

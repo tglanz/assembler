@@ -33,6 +33,7 @@ bool isNumericCharacter(char character);
 
 bool tryGetLabel(char * destination, const char * line);
 bool tryGetDirective(char * destination, const char * line);
+bool tryGetDirectiveArgs(char * destination, const char * line);
 
 bool isValidLabel(const char * label);
 

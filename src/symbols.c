@@ -20,6 +20,7 @@ void symbolsSetgrowAccordingly(SymbolsSet * set){
                 free(set->data);
             }
             set->data = data;
+            logDebug("symbols set set has regrown from %d to %d", set->size, set->capacity);
         }
     }
 }
@@ -63,7 +64,7 @@ bool symbolsSetInsert(SymbolsSet * set, SymbolType type, const char * key, unsig
 
     set->data[set->size] = symbol;
     ++set->size;
-    symbolsSetgrowAccordingly(set);
     logDebug("added symbol: %s, value: %d, type: %d", symbol.key, symbol.value, symbol.type);
+    symbolsSetgrowAccordingly(set);
     return true;
 }
