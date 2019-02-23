@@ -20,7 +20,7 @@ void writeHeader(const char * header){
     timeInfo = localtime(&raw);
 
     sprintf(timeString,
-        "%d:%d:%d",
+        "%02d:%02d:%02d",
         timeInfo->tm_hour,
         timeInfo->tm_min,
         timeInfo->tm_sec);

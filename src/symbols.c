@@ -1,68 +1,69 @@
 #include "symbols.h"
 
-void growAccordingly(SymbolsVector * symbols){
+/* internal utility, re-allocate memory if required */
+void symbolsSetgrowAccordingly(SymbolsSet * set){
     int idx;
     Symbol * data;
 
-    if (symbols == NULL){
-        return;
-    }
-
-    if (symbols->size == symbols->capacity){
-        symbols->capacity *= 2;
-        data = (Symbol*)calloc(symbols->capacity, sizeof(Symbol));
-        if (symbols->data != NULL){
-            for (idx = 0; idx < symbols->size; ++idx){
-                data[idx] = symbols->data[idx];
+    if (set != NULL){
+        if (set->size == set->capacity){
+            if (set->capacity == 0){
+                set->capacity = SYMBOLS_SET_INITIAL_CAPACITY;
+            } else {
+                set->capacity *= SYMBOLS_SET_GROW_FACTOR;
             }
-            free(symbols->data);
+            data = (Symbol*)calloc(set->capacity, sizeof(Symbol));
+            if (set->data != NULL){
+                for (idx = 0; idx < set->size; ++idx){
+                    data[idx] = set->data[idx];
+                }
+                free(set->data);
+            }
+            set->data = data;
         }
-        symbols->data = data;
     }
 }
 
-SymbolsVector * symbolsVectorNew() {
-    SymbolsVector * symbols = (SymbolsVector*)malloc(sizeof(SymbolsVector));;
-    symbols->capacity = 0;
-    symbols->size = 0;
-    symbols->data = NULL;
-    growAccordingly(symbols);
-    return symbols;
+SymbolsSet * symbolsSetNew() {
+    SymbolsSet * set = (SymbolsSet*)malloc(sizeof(SymbolsSet));;
+    set->capacity = 0;
+    set->size = 0;
+    set->data = NULL;
+    symbolsSetgrowAccordingly(set);
+    return set;
 }
-void symbolsVectorFree(SymbolsVector * symbols) {
+void symbolsSetFree(SymbolsSet * set) {
     int index;
 
-    if (symbols == NULL){
-        return;
-    }
+    if (set != NULL){
+        if (set->data != NULL){
+            for (index = 0; index < set->size; ++index){
+                free(set->data[index].key);
+            }
 
-    if (symbols->data != NULL){
-
-        for (index = 0; index < symbols->size; ++index){
-            free(symbols->data[index].label);
+            free(set->data);
         }
-
-        free(symbols->data);
     }
 
-    free(symbols);
+    free(set);
 }
-bool symbolsVectorAdd(SymbolsVector * symbols, SymbolType type, const char * label, unsigned int value) {
+bool symbolsSetInsert(SymbolsSet * set, SymbolType type, const char * key, unsigned int value) {
     int idx;
     Symbol symbol;
 
-    for (idx = 0; idx < symbols->size; ++idx){
-        if (strcmp(symbols->data[idx].label, label) == 0){
+    for (idx = 0; idx < set->size; ++idx){
+        if (strcmp(set->data[idx].key, key) == 0){
             return false;
         }
     }
 
     symbol.type = type;
     symbol.value = value;
-    symbol.label = strdup(label);
+    symbol.key = strdup(key);
 
-    symbols->data[symbols->size] = symbol;
-    ++symbols->size;
-    logDebug("added symbol: %s, value: %d, type: %d", symbol.label, symbol.value, symbol.type);
+    set->data[set->size] = symbol;
+    ++set->size;
+    symbolsSetgrowAccordingly(set);
+    logDebug("added symbol: %s, value: %d, type: %d", symbol.key, symbol.value, symbol.type);
     return true;
 }

@@ -9,16 +9,18 @@
 #include "sourceFile.h"
 #include "parsing.h"
 #include "symbols.h"
+#include "words.h"
 
 typedef struct {
     unsigned int IC;
     unsigned int DC;
 
-    SymbolsVector * symbols;
+    SymbolsSet * symbols;
+    WordsVector * data;
+    WordsVector * instructions;
 
     bool hasError;
-} State;
-
+} AssemblyState;
 
 void assembleInput(const char * baseName);
 

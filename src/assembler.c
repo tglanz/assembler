@@ -1,13 +1,13 @@
 #include "assembler.h"
 
-void firstPass(State * state, FILE * file);
-void secondPass(State * state, FILE * file);
-void generateOutputs(State * state, const char * baseName);
+void firstPass(AssemblyState * state, FILE * file);
+void secondPass(AssemblyState * state, FILE * file);
+void generateOutputs(AssemblyState * state, const char * baseName);
 
-void resetState(State * state);
-void updateDataSymbols(State * state);
+void resetState(AssemblyState * state);
+void updateDataSymbols(AssemblyState * state);
 
-void handleExternDirective(SymbolsVector * symbols, int lineNumber, const char * line, const char * directive){
+void handleExternDirective(AssemblyState * state, int lineNumber, const char * line){
     char arguments[MAX_LINE_LENGTH];
     char label[MAX_LINE_LENGTH];
     int idx = 1;
@@ -15,7 +15,7 @@ void handleExternDirective(SymbolsVector * symbols, int lineNumber, const char *
     getSplitComponent(arguments, line, '.', 1);
     while (getSplitComponent(label, arguments, ' ', idx)){
         trimStart(label, label);
-        if (!symbolsVectorAdd(symbols, SYMBOL_TYPE_NONE, label, 0)){
+        if (!symbolsSetInsert(state->symbols, SYMBOL_TYPE_EXTERN, label, 0)){
             logWarning("line %3d: already have an extern symbol: %s", lineNumber, label);
         }
         ++idx;
@@ -26,7 +26,29 @@ void handleExternDirective(SymbolsVector * symbols, int lineNumber, const char *
     }
 }
 
-int handleDataDirective(SymbolsVector * symbols, int lineNumber, const char * line, const char * directive){
+
+void handleEntryDirective(AssemblyState * state, int lineNumber, const char * line){
+    char arguments[MAX_LINE_LENGTH];
+    char label[MAX_LINE_LENGTH];
+    int idx = 1;
+
+    getSplitComponent(arguments, line, '.', 1);
+    while (getSplitComponent(label, arguments, ' ', idx)){
+        trimStart(label, label);
+        if (idx > 1){
+            logWarning("line %3d: entry directive can have only a single label as argument, ignoring `%s`", lineNumber, label);
+        } else if (!symbolsSetInsert(state->symbols, SYMBOL_TYPE_ENTRY, label, 0)){
+            logWarning("line %3d: already have an extern symbol: %s", lineNumber, label);
+        }
+        ++idx;
+    }
+
+    if (idx == 1){
+        logWarning("line %3d: at least one label should be provided with an entry directive", lineNumber);
+    }
+}
+
+void handleDataDirective(AssemblyState * state, int lineNumber, const char * line, const char * directive){
     logWarning("handleDataDirective::TODO");
     /*
         get string argument -> array of words
@@ -35,7 +57,7 @@ int handleDataDirective(SymbolsVector * symbols, int lineNumber, const char * li
     */
 }
 
-int handleStringDirective(SymbolsVector * symbols, int lineNumber, const char * line, const char * directive){
+void handleStringDirective(SymbolsSet * symbols, int lineNumber, const char * line, const char * directive){
     logWarning("handleDataDirective::TODO");
     /*
         get int arguments -> array of words
@@ -46,7 +68,7 @@ int handleStringDirective(SymbolsVector * symbols, int lineNumber, const char * 
 
 void assembleInput(const char * baseName) {
     /* assembler state to be carried on through the process */
-    State state;
+    AssemblyState state;
     SourceFile * sourceFile;
 
     /* initialize to a known state, determined elsewhere */
@@ -73,7 +95,7 @@ void assembleInput(const char * baseName) {
     }
 }
 
-void firstPass(State * state, SourceFile * sourceFile){
+void firstPass(AssemblyState * state, SourceFile * sourceFile){
     /* Decleration */
     unsigned int lineNumber;
     char line[MAX_LINE_LENGTH];
@@ -90,38 +112,45 @@ void firstPass(State * state, SourceFile * sourceFile){
         /* remove the newline at the end */
         ++lineNumber;
 
+        logDebug("read line: line %3d: %s", lineNumber, line);
+
         if (!isMeaningfulLine(line)){
             logDebug("irrelevant line: %3d", lineNumber);
             continue;
         }
 
         hasLabel = tryGetLabel(label, line);
-        if (hasLabel && !isValidLabel(label)){
-            logError("line %3d: invalid label, got: `%s`", lineNumber, label);
-            state->hasError = true;
-            continue;
+        if (hasLabel){
+            logDebug("label assumed: %s", label);
+            if (!isValidLabel(label)){
+                logError("line %3d: invalid label, got: `%s`", lineNumber, label);
+                state->hasError = true;
+                continue;
+            }
         }
 
         if (tryGetDirective(directive, line)){
+            logDebug("directive assumed: %s", directive);
             switch (directiveTypeFromString(directive)){
-                
                 case DIRECTIVE_TYPE_ENTRY:
                     if (hasLabel){
                         logWarning("line %3d: entry directive should not have a label. got label `%s`",
-                            lineNumber, label);
+                                   lineNumber,
+                                   label);
                     }
+                    handleEntryDirective(state, lineNumber, line);
                     break;
 
                 case DIRECTIVE_TYPE_EXTERN:
-                    handleExternDirective(state->symbols, lineNumber, line, directive);
+                    handleExternDirective(state, lineNumber, line);
                     break;
                     
                 case DIRECTIVE_TYPE_DATA:
                 case DIRECTIVE_TYPE_STRING:
                     if (hasLabel){
-                        symbolsVectorAdd(state->symbols, SYMBOL_TYPE_DATA, label, state->DC);
+                        symbolsSetInsert(state->symbols, SYMBOL_TYPE_DATA, label, state->DC);
                     }
-                    TODO:: handleDataDirective / handleStringDirective
+                    /* TODO:: handleDataDirective / handleStringDirective */
                 case DIRECTIVE_TYPE_INVALID:
                     logError("line %3d: invalid directive: `%s`", directive);
                     state->hasError = true;
@@ -137,22 +166,22 @@ void firstPass(State * state, SourceFile * sourceFile){
     }
 }
 
-void secondPass(State * state, FILE * file){
+void secondPass(AssemblyState * state, FILE * file){
     logError("secondPass::NotImplemented");
 }
 
-void generateOutputs(State * state, const char * baseName){
+void generateOutputs(AssemblyState * state, const char * baseName){
     logError("generateOutputs::NotImplemented");
 }
 
-void updateDataSymbols(State * state){
+void updateDataSymbols(AssemblyState * state){
     logError("updateDataSymbols::NotImplemented");
 }
 
-void resetState(State * state) {
+void resetState(AssemblyState * state) {
     logDebug("Resetting state");
     state->IC = 0;
     state->DC = 0;
     state->hasError = false;
-    state->symbols = symbolsVectorNew();
+    state->symbols = symbolsSetNew();
 }

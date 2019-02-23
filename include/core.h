@@ -1,15 +1,9 @@
 #ifndef __CORE_H__
 #define __CORE_H__
 
-#define WORD_SIZE (12)
-
 #define ENCODING_TYPE_WIDTH (2)
 #define OPCODE_WIDTH (4)
 #define OPERAND_WIDTH (3)
-
-typedef struct {
-    int raw: WORD_SIZE;
-} Word;
 
 typedef enum {
     true = 1,

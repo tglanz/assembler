@@ -14,7 +14,6 @@ void trimStart(char * destination, const char * string){
 
         if (encounteredNonWhitespace){
             destination[cursor++] = string[idx];
-            destination[cursor] = '\0';
         }
     }
 

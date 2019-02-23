@@ -8,16 +8,18 @@
 #include "core.h"
 #include "log.h"
 
-#define SYMBOLS_DEFAULT_CAPACITY (4)
+#define SYMBOLS_SET_INITIAL_CAPACITY (4)
+#define SYMBOLS_SET_GROW_FACTOR (2)
 
 typedef enum {
     SYMBOL_TYPE_DATA,
     SYMBOL_TYPE_CODE,
-    SYMBOL_TYPE_NONE
+    SYMBOL_TYPE_ENTRY, 
+    SYMBOL_TYPE_EXTERN
 } SymbolType;
 
 typedef struct {
-    char * label;
+    char * key;
     SymbolType type;
     unsigned int value;
 } Symbol;
@@ -26,10 +28,10 @@ typedef struct {
     unsigned int size;
     unsigned int capacity;
     Symbol * data;
-} SymbolsVector;
+} SymbolsSet;
 
-SymbolsVector * symbolsVectorNew();
-void symbolsVectorFree(SymbolsVector * symbols);
-bool symbolsVectorAdd(SymbolsVector * symbols, SymbolType type, const char * label, unsigned int value);
+SymbolsSet * symbolsSetNew();
+void symbolsSetFree(SymbolsSet * set);
+bool symbolsSetInsert(SymbolsSet * set, SymbolType type, const char * key, unsigned int value);
 
 #endif /* __SYMBOLS_H__ */

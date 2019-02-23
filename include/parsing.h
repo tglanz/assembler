@@ -23,12 +23,13 @@ typedef enum {
     DIRECTIVE_TYPE_INVALID
 } DirectiveType;
 
+DirectiveType directiveTypeFromString(const char * string);
+const char * stringFromDirectiveType(DirectiveType directiveType);
+
 bool isWhitespaceCharacter(char character);
 bool isWhitespaceLine(const char * line);
 bool isAlphabeticalCharacter(char character, bool includeLowerCase, bool includeUpperCase);
 bool isNumericCharacter(char character);
-
-DirectiveType directiveTypeFromString(const char * string);
 
 bool tryGetLabel(char * destination, const char * line);
 bool tryGetDirective(char * destination, const char * line);

@@ -1,5 +1,34 @@
 #include "parsing.h"
 
+DirectiveType directiveTypeFromString(const char * string){
+    if (strcmp(string, "data") == 0){
+        return DIRECTIVE_TYPE_DATA;
+    } else if (strcmp(string, "string") == 0){
+        return DIRECTIVE_TYPE_STRING;
+    } else if (strcmp(string, "entry") == 0){
+        return DIRECTIVE_TYPE_ENTRY;
+    } else if (strcmp(string, "extern") == 0){
+        return DIRECTIVE_TYPE_EXTERN;
+    } else {
+        return DIRECTIVE_TYPE_INVALID;
+    }
+}
+
+const char * directiveStringFromType(DirectiveType type){
+    switch (type){
+        case DIRECTIVE_TYPE_DATA:
+            return "data";
+        case DIRECTIVE_TYPE_ENTRY:
+            return "entry";
+        case DIRECTIVE_TYPE_EXTERN:
+            return "extern";
+        case DIRECTIVE_TYPE_STRING:
+            return "string";
+        default:
+            return "invalid";
+    }
+}
+
 bool isWhitespaceCharacter(char character){
     return character == ' ' || character == '\t' || character == '\n';
 }
@@ -24,20 +53,6 @@ bool isAlphabeticalCharacter(char character, bool includeLowerCase, bool include
 
 bool isNumericCharacter(char character){
     return character >= '0' && character <= '9';
-}
-
-DirectiveType directiveTypeFromString(const char * string){
-    if (strcmp(string, "data") == 0){
-        return DIRECTIVE_TYPE_DATA;
-    } else if (strcmp(string, "string") == 0){
-        return DIRECTIVE_TYPE_STRING;
-    } else if (strcmp(string, "entry") == 0){
-        return DIRECTIVE_TYPE_ENTRY;
-    } else if (strcmp(string, "extern") == 0){
-        return DIRECTIVE_TYPE_EXTERN;
-    } else {
-        return DIRECTIVE_TYPE_INVALID;
-    }
 }
 
 bool tryGetLabel(char * destination, const char * line) {
@@ -68,7 +83,7 @@ bool isValidLabel(const char * label){
         return false;
     }
 
-    // TODO: check if as operation
+    /* TODO: check if as operation */
 
     /* for all characters except the first */
     while (--size > 0){
