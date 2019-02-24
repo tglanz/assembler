@@ -1,12 +1,5 @@
 #include "assembler/firstPass.h"
 
-void firstPass(AssemblyState * state, FILE * file);
-void secondPass(AssemblyState * state, FILE * file);
-void generateOutputs(AssemblyState * state, const char * baseName);
-
-void resetState(AssemblyState * state);
-void updateDataSymbols(AssemblyState * state);
-
 void handleExternDirective(AssemblyState * state, int lineNumber, const char * line){
     char arguments[MAX_LINE_LENGTH];
     char argument[MAX_LINE_LENGTH];
@@ -150,36 +143,12 @@ void handleOperation(AssemblyState * state, int lineNumber, const char * operati
     state->IC += 1 + dataWordsCount;
 }
 
-bool assembleInput(const char * baseName) {
-    /* assembler state to be carried on through the process */
-    AssemblyState state;
-    SourceFile * sourceFile;
-
-    /* initialize to a known state, determined elsewhere */
-    resetState(&state);
-
-    sourceFile = openSourceFile(baseName);
-    if (sourceFile == NULL){
-        logError("Could not open source file %s. Aborting", baseName);
-        return false;
-    }
-
-    firstPass(&state, sourceFile);
-    if (!state.hasError){
-        /* rewind file */
-        fseek(sourceFile, 0, SEEK_SET);
-        secondPass(&state, sourceFile);
-    }
-
-    fclose(sourceFile);
-    if (!state.hasError){
-        generateOutputs(&state, baseName);
-    }
-
-    return !state.hasError;
+void updateDataSymbols(AssemblyState * state) {
+    logError("firstPass::updateDataSymbols - NotImplemented");
+    state->hasError = true;
 }
 
-void firstPass(AssemblyState * state, SourceFile * sourceFile){
+void runFirstPass(AssemblyState * state, SourceFile * sourceFile){
     /* Decleration */
     unsigned int lineNumber;
     char line[MAX_LINE_LENGTH];
@@ -252,28 +221,4 @@ void firstPass(AssemblyState * state, SourceFile * sourceFile){
     if (!state->hasError){
         updateDataSymbols(state);
     }
-}
-
-void secondPass(AssemblyState * state, FILE * file){
-    state->hasError = true;
-    logError("secondPass::NotImplemented");
-}
-
-void generateOutputs(AssemblyState * state, const char * baseName){
-    state->hasError = true;
-    logError("generateOutputs::NotImplemented");
-}
-
-void updateDataSymbols(AssemblyState * state){
-    logError("updateDataSymbols::NotImplemented");
-}
-
-void resetState(AssemblyState * state) {
-    logDebug("Resetting state");
-    state->IC = 0;
-    state->DC = 0;
-    state->hasError = false;
-    state->symbols = symbolsSetNew();
-    state->data = wordsVectorNew("data");
-    state->instructions = wordsVectorNew("instructions");
 }

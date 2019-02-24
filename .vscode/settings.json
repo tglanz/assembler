@@ -11,6 +11,7 @@
         "xstring": "cpp",
         "xutility": "cpp",
         "windows.h": "c",
-        "assembler.h": "c"
+        "assembler.h": "c",
+        "assemblystate.h": "c"
     }
 }

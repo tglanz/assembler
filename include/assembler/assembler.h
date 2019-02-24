@@ -7,13 +7,11 @@
 #include "core.h"
 #include "log.h"
 #include "sourceFile.h"
-#include "assembler/assemblyState.h"
-#include "assembler/firstPass.h"
-#include "parsing.h"
-#include "symbols.h"
-#include "words.h"
 #include "instructions.h"
 
+#include "assembler/assemblyState.h"
+#include "assembler/firstPass.h"
+#include "assembler/secondPass.h"
 
 bool assembleInput(const char * baseName);
 

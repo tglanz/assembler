@@ -17,4 +17,6 @@ typedef struct {
     bool hasError;
 } AssemblyState;
 
+AssemblyState createAssemblyState();
+
 #endif /* __ASSEMBLY_STATE_H__ */
