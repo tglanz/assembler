@@ -136,3 +136,15 @@ int getDataWordsCount(OperandAddressType sourceAddressType, OperandAddressType d
 
     return count;
 }
+
+int registerIndexFromArgumentString(const char * argumentString){
+    int registerIndex;
+    if (sscanf(argumentString + REGISTER_ARGUMENT_INDEX_OFFSET, "%d", &registerIndex) != 1 ||
+        registerIndex < REGISTER_MIN ||
+        registerIndex > REGISTER_MAX){
+
+        registerIndex = INVALID_REGISTER;
+    }
+
+    return registerIndex;
+}

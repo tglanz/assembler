@@ -11,7 +11,7 @@ void handleExternDirective(AssemblyState * state, int lineNumber, const char * l
         return;
     }
     
-    while (getSplitComponent(argument, arguments, ' ', argIndex)){
+    while (getSplitComponent(argument, arguments, " ", argIndex)){
         if (!symbolsSetInsert(state->symbols, SYMBOL_TYPE_EXTERN, argument, 0)){
             logWarning("line %3d: already have symbol: %s", lineNumber, argument);
         }
@@ -36,13 +36,14 @@ void handleEntryDirective(AssemblyState * state, int lineNumber, const char * li
         return;
     }
 
-    while (getSplitComponent(argument, arguments, ' ', argIndex++)){
+    while (getSplitComponent(argument, arguments, " ", argIndex)){
         if (argIndex > 0){
             logWarning("line %3d: entry directive can have only a single label as argument, ignoring `%s`",
                        lineNumber, argument);
         } else if (!symbolsSetInsert(state->symbols, SYMBOL_TYPE_ENTRY, argument, 0)){
-            logWarning("line %3d: already have an extern symbol: %s", lineNumber, argument);
+            logWarning("line %3d: duplicate symbol: `%s`", lineNumber, argument);
         }
+        ++argIndex;
     }
 }
 
@@ -51,10 +52,10 @@ void handleStringDirective(AssemblyState * state, int lineNumber, const char * l
     Word word;
     char stringData[MAX_LINE_LENGTH];
 
-    if (getSplitComponent(stringData, line, '"', 2)){
+    if (getSplitComponent(stringData, line, "\"", 2)){
         logError("line %3d: invalid string directive, expected only one argument", lineNumber);
         state->hasError = true;
-    } else if (!getSplitComponent(stringData, line, '"', 1)){
+    } else if (!getSplitComponent(stringData, line, "\"", 1)){
         logError("line %3d: invalid string directive, expected argument", lineNumber);
         state->hasError = true;
     } else {
@@ -80,7 +81,7 @@ void handleDataDirective(AssemblyState * state, int lineNumber, const char * lin
         return;
     }
 
-    while (getSplitComponent(argument, arguments, ',', argIndex++)){
+    while (getSplitComponent(argument, arguments, ",", argIndex++)){
         if (sscanf(argument, "%d", &integer) != 1){
             logError("line %3d: cannot parse argument `%s` to integer", lineNumber, argument);
             state->hasError = true;
@@ -117,13 +118,32 @@ void handleOperation(AssemblyState * state, int lineNumber, const char * operati
         return;
     }
 
+    /* TODO: Refactor */
     instructionWord.word.raw = 0;
     for (idx = 0; idx < operandsCount; ++idx){
-        getSplitComponent(argument, arguments, ',', idx);
+
+        getSplitComponent(argument, arguments, ",", idx);
+
+        if (instructionModel->addressTypes[0] == ADDRESS_TYPE_NONE){
+            ++idx;
+        }
+
         if (idx == 0){
             instructionWord.fields.sourceAddressType = oeprandStringToAddressType(argument);
+            if ((instructionWord.fields.sourceAddressType & instructionModel->addressTypes[0]) != 
+                instructionWord.fields.sourceAddressType){
+                    logError("line %3d: invalid address type for source operand: `%s`",
+                             lineNumber, argument);
+                    state->hasError = true;
+                }
         } else if (idx == 1) {
             instructionWord.fields.destinationAddressType = oeprandStringToAddressType(argument);
+            if ((instructionWord.fields.destinationAddressType & instructionModel->addressTypes[1]) != 
+                instructionWord.fields.destinationAddressType){
+                    logError("line %3d: invalid address type for destination operand: `%s`",
+                             lineNumber, argument);
+                    state->hasError = true;
+                }
         } else {
             logError("line %3d: more than 2 operands is not supported, shuldn't reach this case");
             state->hasError = true;
@@ -143,9 +163,19 @@ void handleOperation(AssemblyState * state, int lineNumber, const char * operati
     state->IC += 1 + dataWordsCount;
 }
 
-void updateDataSymbols(AssemblyState * state) {
-    logError("firstPass::updateDataSymbols - NotImplemented");
-    state->hasError = true;
+void updateDataSymbolsWithInstructionsCounter(AssemblyState * state) {
+    int idx;
+    unsigned int newValue;
+
+    Symbol * symbol;
+    for (idx = 0; idx < state->symbols->size; ++idx){
+        symbol = &state->symbols->data[idx];
+        if (symbol->type == SYMBOL_TYPE_DATA){
+            newValue = symbol->value + state->IC;
+            logDebug("updating data sybmol: %s value %d, to %d", symbol->key, symbol->value, newValue);
+            symbol->value = newValue;
+        }
+    }
 }
 
 void runFirstPass(AssemblyState * state, SourceFile * sourceFile){
@@ -167,7 +197,7 @@ void runFirstPass(AssemblyState * state, SourceFile * sourceFile){
         /* remove the newline at the end */
         ++lineNumber;
 
-        logDebug("read line: line %3d: %s", lineNumber, line);
+        logDebug("first pass, read line: line %3d: %s", lineNumber, line);
 
         if (!isMeaningfulLine(line)){
             continue;
@@ -175,7 +205,13 @@ void runFirstPass(AssemblyState * state, SourceFile * sourceFile){
 
         hasLabel = tryGetLabel(label, line);
         if (hasLabel && !isValidLabel(label)){
-            logError("line %3d: invalid label, got: `%s`", lineNumber, label);
+            
+            if (strlen(label) > 0 && isWhitespaceCharacter(label[0])){
+                logError("line %3d: invalid label, got: `%s`. hint: labels must not start with a whitespace!",
+                         lineNumber, label);
+            } else {
+                logError("line %3d: invalid label, got: `%s`", lineNumber, label);
+            }
             state->hasError = true;
             continue;
         }
@@ -219,6 +255,6 @@ void runFirstPass(AssemblyState * state, SourceFile * sourceFile){
     }
 
     if (!state->hasError){
-        updateDataSymbols(state);
+        updateDataSymbolsWithInstructionsCounter(state);
     }
 }

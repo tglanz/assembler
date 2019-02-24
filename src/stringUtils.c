@@ -1,35 +1,28 @@
 #include "stringUtils.h"
 
-bool getSplitComponent(char * destination, const char * string, char delimiter, int componentIndex){
-    int idx, cursor, length;
-    bool hasComponent;
+bool getSplitComponent(char * destination, const char * string, const char * delimiters, int componentIndex){
+    char *source, *component;
+    source = strdup(string);
 
-    hasComponent = false;
-    cursor = 0;
-    length = strlen(string);
+    component = strtok(source, delimiters);
 
-    for (idx = 0; idx < length; ++idx){
-        if (componentIndex == 0){
-            if (string[idx] == delimiter){
-                hasComponent = true;
-                break;
-            }
-
-            destination[cursor++] = string[idx];
-        } else if (string[idx] == delimiter){
-            --componentIndex;
-            if (componentIndex == 0 && idx < length - 1){
-                hasComponent = true;
-            }
-        }
+    while (component != NULL && componentIndex > 0){
+        component = strtok(NULL, delimiters);
+        --componentIndex;
     }
 
-    destination[cursor] = '\0';
-    return hasComponent;
+    destination[0] = '\0';
+    if (component != NULL){
+        strcpy(destination, component);
+    }
+
+    free(source);
+    return destination[0] != '\0';
 }
 
 void joinWithDelimiter(char * destination, const char * stringA, const char * stringB, char delimiter){
     char delimiterString[1];
+
     delimiterString[0] = delimiter;
 
     strcpy(destination, stringA);

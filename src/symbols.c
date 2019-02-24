@@ -49,13 +49,10 @@ void symbolsSetFree(SymbolsSet * set) {
     free(set);
 }
 bool symbolsSetInsert(SymbolsSet * set, SymbolType type, const char * key, unsigned int value) {
-    int idx;
     Symbol symbol;
 
-    for (idx = 0; idx < set->size; ++idx){
-        if (strcmp(set->data[idx].key, key) == 0){
-            return false;
-        }
+    if (symbolsSetFind(set, key) != NULL){
+        return false;
     }
 
     symbol.type = type;
@@ -67,4 +64,14 @@ bool symbolsSetInsert(SymbolsSet * set, SymbolType type, const char * key, unsig
     logDebug("added symbol: %s, value: %d, type: %d", symbol.key, symbol.value, symbol.type);
     symbolsSetgrowAccordingly(set);
     return true;
+}
+
+const Symbol * symbolsSetFind(SymbolsSet * set, const char * key){
+    int idx;
+    for (idx = 0; idx < set->size; ++idx){
+        if (strcmp(set->data[idx].key, key) == 0){
+            return &set->data[idx];
+        }
+    }    
+    return NULL;
 }

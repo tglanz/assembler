@@ -33,5 +33,6 @@ typedef struct {
 SymbolsSet * symbolsSetNew();
 void symbolsSetFree(SymbolsSet * set);
 bool symbolsSetInsert(SymbolsSet * set, SymbolType type, const char * key, unsigned int value);
+const Symbol * symbolsSetFind(SymbolsSet * set, const char * key);
 
 #endif /* __SYMBOLS_H__ */

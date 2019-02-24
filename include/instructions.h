@@ -9,6 +9,10 @@
 #include "words.h"
 
 #define REGISTER_ADDRESS_PREFIX ('@')
+#define REGISTER_ARGUMENT_INDEX_OFFSET (2)
+#define REGISTER_MIN (0)
+#define REGISTER_MAX (7)
+#define INVALID_REGISTER (REGISTER_MAX + 1)
 
 typedef enum {
     ADDRESS_TYPE_NONE        = 0x0,
@@ -69,5 +73,6 @@ const InstructionModel * findInstructionModel(const char * operation);
 unsigned int getModelOperandsCount(const InstructionModel * model);
 OperandAddressType oeprandStringToAddressType(const char * argument);
 int getDataWordsCount(OperandAddressType sourceAddressType, OperandAddressType destinationAddressType);
+int registerIndexFromArgumentString(const char * argumentString);
 
 #endif /* __INSTRUCTIONS_H__ */

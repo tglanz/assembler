@@ -21,7 +21,7 @@
  */
 #include "stringUtils.h"
 
-bool getSplitComponent(char * destination, const char * string, char delimiter, int componentIndex);
+bool getSplitComponent(char * destination, const char * string, const char * delimiters, int componentIndex);
 void joinWithDelimiter(char * destination, const char * stringA, const char * stringB, char delimiter);
 bool substringInRange(char * destination, const char * string, int startInclusive, int endExclusive);
 int findCharacterIndex(const char * string, int offset, char character);

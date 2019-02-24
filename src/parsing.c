@@ -1,5 +1,8 @@
 #include "parsing.h"
 
+const char WHITSPACES[] = { ' ', '\t', '\n' };
+const int WHITSPACES_COUNT = sizeof(WHITSPACES) / sizeof(char);
+
 DirectiveType directiveTypeFromString(const char * string){
     if (strcmp(string, "data") == 0){
         return DIRECTIVE_TYPE_DATA;
@@ -30,7 +33,13 @@ const char * directiveStringFromType(DirectiveType type){
 }
 
 bool isWhitespaceCharacter(char character){
-    return character == ' ' || character == '\t' || character == '\n';
+    int idx;
+    for (idx = 0; idx < WHITSPACES_COUNT; ++idx){
+        if (character == WHITSPACES[idx]){
+            return true;
+        }
+    }
+    return false;
 }
 
 bool isWhitespaceLine(const char * line){
@@ -54,7 +63,6 @@ bool isNumericCharacter(char character){
 
 bool tryGetLabel(char * destination, const char * line) {
     if (untilCharacterExclusive(destination, line, ':')){
-        trimStart(destination, destination);
         return true;
     }
     return false;
@@ -76,9 +84,13 @@ bool tryGetDirectiveArgs(char * destination, const char * line){
 }
 
 bool tryGetOperation(char * destinationOperation, char * destinationArguments, const char * line, bool hasLabel){
+    int idx;
     char tmp[MAX_LINE_LENGTH];
 
-    trimRepeatedCharacter(tmp, line, ' ');
+    strcpy(tmp, line);
+    for (idx = 0; idx < WHITSPACES_COUNT; ++idx){
+        trimRepeatedCharacter(tmp, tmp, WHITSPACES[idx]);       
+    }
     trimStart(tmp, tmp);
 
     /*
@@ -87,7 +99,7 @@ bool tryGetOperation(char * destinationOperation, char * destinationArguments, c
                 1. label: operation ... -> hasLabel = true
                 2. operation ...        -> hasLabel = false
     */
-    if (!getSplitComponent(destinationOperation, tmp, ' ', hasLabel ? 1 : 0)){
+    if (!getSplitComponent(destinationOperation, tmp, " ", hasLabel ? 1 : 0)){
         return false;
     }
 

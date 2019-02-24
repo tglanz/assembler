@@ -1,15 +1,15 @@
 ;file ps.as
 
 .entry LENGTH
-.extern W A
-MAIN:       mov     @r ,LENGTH
+.extern      W     A
+MAIN:       mov     @r3 ,       LENGTH
 LOOP:       jmp     L1
             prn     -5
             bne     W
             sub     @r1, @r4
             bne     L3
-L1:         inc     K
-.entry LOOP
+L1:        inc     K
+.entry    LOOP
             jmp     W
 END:        stop
 STR:        .string "abcdef"
