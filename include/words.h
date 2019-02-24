@@ -26,5 +26,7 @@ typedef struct {
 WordsVector * wordsVectorNew(const char * name);
 void wordsVectorFree(WordsVector * vector);
 void wordsVectorAppend(WordsVector * vector, Word word);
+Word wordsVectorGet(WordsVector * vector, int index);
+void wordsVectorSet(WordsVector * vector, int index, Word word);
 
 #endif /* __WORDS_VECTOR_H_ */

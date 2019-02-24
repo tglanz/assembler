@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/bin/assembler.exe",
             "args": [
-                "-vd",
+                "-v0",
                 "data/ps"
             ],
             "stopAtEntry": false,

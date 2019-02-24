@@ -49,3 +49,11 @@ void wordsVectorAppend(WordsVector * vector, Word word) {
     wordsVectorGrowAccordingly(vector);
     logDebug("words vector: %s, added: 0x%03x", vector->name, word.raw);
 }
+
+Word wordsVectorGet(WordsVector * vector, int index){
+    return vector->data[index];
+}
+
+void wordsVectorSet(WordsVector * vector, int index, Word word){
+    vector->data[index] = word;
+}

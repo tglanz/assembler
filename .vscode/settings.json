@@ -10,6 +10,7 @@
         "xlocale": "cpp",
         "xstring": "cpp",
         "xutility": "cpp",
-        "windows.h": "c"
+        "windows.h": "c",
+        "assembler.h": "c"
     }
 }

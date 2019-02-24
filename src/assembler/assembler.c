@@ -1,4 +1,4 @@
-#include "assembler.h"
+#include "assembler/assembler.h"
 
 void firstPass(AssemblyState * state, FILE * file);
 void secondPass(AssemblyState * state, FILE * file);
@@ -150,7 +150,7 @@ void handleOperation(AssemblyState * state, int lineNumber, const char * operati
     state->IC += 1 + dataWordsCount;
 }
 
-void assembleInput(const char * baseName) {
+bool assembleInput(const char * baseName) {
     /* assembler state to be carried on through the process */
     AssemblyState state;
     SourceFile * sourceFile;
@@ -158,12 +158,10 @@ void assembleInput(const char * baseName) {
     /* initialize to a known state, determined elsewhere */
     resetState(&state);
 
-    logInfo("Processing: %s", baseName);
-
     sourceFile = openSourceFile(baseName);
     if (sourceFile == NULL){
         logError("Could not open source file %s. Aborting", baseName);
-        return;
+        return false;
     }
 
     firstPass(&state, sourceFile);
@@ -177,6 +175,8 @@ void assembleInput(const char * baseName) {
     if (!state.hasError){
         generateOutputs(&state, baseName);
     }
+
+    return !state.hasError;
 }
 
 void firstPass(AssemblyState * state, SourceFile * sourceFile){
@@ -255,10 +255,12 @@ void firstPass(AssemblyState * state, SourceFile * sourceFile){
 }
 
 void secondPass(AssemblyState * state, FILE * file){
+    state->hasError = true;
     logError("secondPass::NotImplemented");
 }
 
 void generateOutputs(AssemblyState * state, const char * baseName){
+    state->hasError = true;
     logError("generateOutputs::NotImplemented");
 }
 
