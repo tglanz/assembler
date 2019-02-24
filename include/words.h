@@ -17,12 +17,13 @@ typedef struct {
 } Word;
 
 typedef struct {
+    const char * name;
     unsigned int size;
     unsigned int capacity;
     Word * data;
 } WordsVector;
 
-WordsVector * wordsVectorNew();
+WordsVector * wordsVectorNew(const char * name);
 void wordsVectorFree(WordsVector * vector);
 void wordsVectorAppend(WordsVector * vector, Word word);
 

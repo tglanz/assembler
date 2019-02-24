@@ -23,6 +23,5 @@ void logDebug(const char * fmt, ...);
 void logInfo(const char * fmt, ...);
 void logWarning(const char * fmt, ...);
 void logError(const char * fmt, ...);
-void logFatal(const char * fmt, ...);
 
 #endif /* __LOG_H__ */

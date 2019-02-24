@@ -10,6 +10,7 @@
 #include "parsing.h"
 #include "symbols.h"
 #include "words.h"
+#include "instructions.h"
 
 typedef struct {
     unsigned int IC;

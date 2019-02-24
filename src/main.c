@@ -5,11 +5,11 @@
 #include "assembler.h"
 
 int main(int argc, char ** argv){
-    int idx;
+    int idx, tmp;
 
     for (idx = 1; idx < argc; ++idx){
-        if (strcmp(argv[idx], "-vd") == 0){
-            logSetLevel(LOG_LEVEL_DEBUG);
+        if (sscanf(argv[idx], "-v%d", &tmp) == 1){
+            logSetLevel(tmp);
         } else {
             assembleInput(argv[idx]);
         }

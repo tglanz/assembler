@@ -1,6 +1,15 @@
 {
     "files.associations": {
         "*.rs": "rust",
-        "directives.h": "c"
+        "directives.h": "c",
+        "cstddef": "cpp",
+        "limits": "cpp",
+        "memory": "cpp",
+        "system_error": "cpp",
+        "xiosbase": "cpp",
+        "xlocale": "cpp",
+        "xstring": "cpp",
+        "xutility": "cpp",
+        "windows.h": "c"
     }
 }

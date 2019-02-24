@@ -1,13 +1,24 @@
-#include <string.h>
+/* Change console text color, then restore it back to normal. */
 #include <stdio.h>
+#include <windows.h>
 
-int main(int argc, char ** argv){
-    char b1[255];
-    char b2[255];
-    int count;
+#ifdef WINDOWS
 
-    count = sscanf("a: .b", "%s\: .%s", b1, b2);
+int main() {
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO consoleInfo;
+    WORD saved_attributes;
 
-    printf("done: %d", count);
-    return 1;
+    /* Save current attributes */
+    GetConsoleScreenBufferInfo(hConsole, &consoleInfo);
+    saved_attributes = consoleInfo.wAttributes;
+
+    SetConsoleTextAttribute(hConsole, FOREGROUND_RED);
+    printf("This is some nice COLORFUL text, isn't it?");
+
+    /* Restore original attributes */
+    SetConsoleTextAttribute(hConsole, saved_attributes);
+    printf("Back to normal");
+
+    return 0;
 }

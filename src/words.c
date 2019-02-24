@@ -25,8 +25,9 @@ void wordsVectorGrowAccordingly(WordsVector * vector){
     }
 }
 
-WordsVector * wordsVectorNew() {
+WordsVector * wordsVectorNew(const char * name) {
     WordsVector * vector = (WordsVector*)malloc(sizeof(WordsVector));;
+    vector->name = name;
     vector->capacity = 0;
     vector->size = 0;
     vector->data = NULL;
@@ -46,5 +47,5 @@ void wordsVectorAppend(WordsVector * vector, Word word) {
     vector->data[vector->size] = word;
     ++vector->size;
     wordsVectorGrowAccordingly(vector);
-    logDebug("added word: 0x%03x", word.raw);
+    logDebug("words vector: %s, added: 0x%03x", vector->name, word.raw);
 }

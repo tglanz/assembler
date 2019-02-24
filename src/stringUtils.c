@@ -61,13 +61,25 @@ bool substringInRange(char * destination, const char * string, int startInclusiv
 }
 
 int findCharacterIndex(const char * string, int offset, char character){
-    int idx;
-    for (idx = offset; idx < strlen(string); ++idx){
-        if (string[idx] == character){
-            return idx;
+    while (offset < strlen(string)){
+        if (string[offset] == character){
+            return offset;
         }
+        ++offset;
     }
+
     return -1;
+}
+
+int countCharacterOccurrences(const char * string, int offset, char character) {
+    int count = 0;
+    while (offset < strlen(string)){
+        if (string[offset] == character){
+            ++count;
+        }
+        ++offset;
+    }
+    return count;
 }
 
 bool fromIndexInclusive(char * destination, const char * string, int index){

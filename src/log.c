@@ -3,10 +3,6 @@
 unsigned int gLogLevel = LOG_DEFAULT_LEVEL;
 
 void logSetLevel(LogLevel level){
-    if (level > LOG_LEVEL_ERROR){
-        level = LOG_LEVEL_ERROR;
-    }
-
     gLogLevel = level;
 }
 
@@ -70,13 +66,4 @@ void logError(const char * fmt, ...) {
         va_end(args);
         printf("\n");
     }
-}
-
-void logFatal(const char * fmt, ...) {
-    va_list args;
-    writeHeader("FATL");
-    va_start(args, fmt);
-    vprintf(fmt, args);
-    va_end(args);
-    exit(EXIT_CODE_FATAL);
 }

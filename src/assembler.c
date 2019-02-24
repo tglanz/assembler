@@ -45,7 +45,8 @@ void handleEntryDirective(AssemblyState * state, int lineNumber, const char * li
 
     while (getSplitComponent(argument, arguments, ' ', argIndex++)){
         if (argIndex > 0){
-            logWarning("line %3d: entry directive can have only a single label as argument, ignoring `%s`", lineNumber, argument);
+            logWarning("line %3d: entry directive can have only a single label as argument, ignoring `%s`",
+                       lineNumber, argument);
         } else if (!symbolsSetInsert(state->symbols, SYMBOL_TYPE_ENTRY, argument, 0)){
             logWarning("line %3d: already have an extern symbol: %s", lineNumber, argument);
         }
@@ -99,6 +100,56 @@ void handleDataDirective(AssemblyState * state, int lineNumber, const char * lin
     }
 }
 
+void handleOperation(AssemblyState * state, int lineNumber, const char * operation, const char * arguments) {
+    const InstructionModel * instructionModel;
+    unsigned int idx, operandsCount, dataWordsCount;
+    char argument[MAX_LINE_LENGTH];
+    InstructionWord instructionWord;
+
+    instructionModel = findInstructionModel(operation);
+    if (instructionModel == NULL){
+        logError("line %3d: unknown operation: `%s`", operation);
+        state->hasError = true;
+        return;
+    }
+
+    operandsCount = 0;
+    if (strlen(arguments) != 0){
+        operandsCount = countCharacterOccurrences(arguments, 0, ',') + 1;
+    }
+    if (operandsCount != getModelOperandsCount(instructionModel)){
+        logError("line %3d: invalid argument count for operation `%s`. expected %d",
+                 instructionModel->operation, operandsCount);
+        state->hasError = true;
+        return;
+    }
+
+    instructionWord.word.raw = 0;
+    for (idx = 0; idx < operandsCount; ++idx){
+        getSplitComponent(argument, arguments, ',', idx);
+        if (idx == 0){
+            instructionWord.fields.sourceAddressType = oeprandStringToAddressType(argument);
+        } else if (idx == 1) {
+            instructionWord.fields.destinationAddressType = oeprandStringToAddressType(argument);
+        } else {
+            logError("line %3d: more than 2 operands is not supported, shuldn't reach this case");
+            state->hasError = true;
+        }
+    }
+
+    instructionWord.fields.opcode = instructionModel->code;
+    wordsVectorAppend(state->instructions, instructionWord.word);
+
+    dataWordsCount = getDataWordsCount(instructionWord.fields.sourceAddressType,
+                                       instructionWord.fields.destinationAddressType);
+    for (idx = 0; idx < dataWordsCount; ++idx){
+        instructionWord.word.raw = 0;
+        wordsVectorAppend(state->instructions, instructionWord.word);
+    }
+
+    state->IC += 1 + dataWordsCount;
+}
+
 void assembleInput(const char * baseName) {
     /* assembler state to be carried on through the process */
     AssemblyState state;
@@ -150,26 +201,22 @@ void firstPass(AssemblyState * state, SourceFile * sourceFile){
         logDebug("read line: line %3d: %s", lineNumber, line);
 
         if (!isMeaningfulLine(line)){
-            logDebug("skipping, irrelevant line: %3d", lineNumber);
             continue;
         }
 
         hasLabel = tryGetLabel(label, line);
-        if (hasLabel){
-            logDebug("label assumed: %s", label);
-            if (!isValidLabel(label)){
-                logError("line %3d: invalid label, got: `%s`", lineNumber, label);
-                state->hasError = true;
-                continue;
-            }
+        if (hasLabel && !isValidLabel(label)){
+            logError("line %3d: invalid label, got: `%s`", lineNumber, label);
+            state->hasError = true;
+            continue;
         }
 
         if (tryGetDirective(directive, line)){
-            logDebug("directive assumed: %s", directive);
             switch (directiveTypeFromString(directive)){
                 case DIRECTIVE_TYPE_ENTRY:
                     if (hasLabel) {
-                        logWarning("line %3d: entry directive should not have a label. got label `%s`", lineNumber, label);
+                        logWarning("line %3d: entry directive should not have a label. got label `%s`",
+                                   lineNumber, label);
                     }
                     handleEntryDirective(state, lineNumber, line);
                     break;
@@ -192,7 +239,10 @@ void firstPass(AssemblyState * state, SourceFile * sourceFile){
                     break;
             }
         } else if (tryGetOperation(operation, operationArguments, line, hasLabel)){
-            logDebug("line %3d: got operation: %s", lineNumber, operation);
+            if (hasLabel && !symbolsSetInsert(state->symbols, SYMBOL_TYPE_CODE, label, state->IC)){
+                logWarning("line %3d: already have symbol `%s`, ignoring", lineNumber, label);
+            }
+            handleOperation(state, lineNumber, operation, operationArguments);
         } else {
             logError("line %3d: unknown error, unable to parse", lineNumber);
             state->hasError = true;
@@ -222,6 +272,6 @@ void resetState(AssemblyState * state) {
     state->DC = 0;
     state->hasError = false;
     state->symbols = symbolsSetNew();
-    state->data = wordsVectorNew();
-    state->instructions = wordsVectorNew();
+    state->data = wordsVectorNew("data");
+    state->instructions = wordsVectorNew("instructions");
 }

@@ -25,6 +25,7 @@ bool getSplitComponent(char * destination, const char * string, char delimiter, 
 void joinWithDelimiter(char * destination, const char * stringA, const char * stringB, char delimiter);
 bool substringInRange(char * destination, const char * string, int startInclusive, int endExclusive);
 int findCharacterIndex(const char * string, int offset, char character);
+int countCharacterOccurrences(const char * string, int offset, char character);
 bool fromIndexInclusive(char * destination, const char * string, int index);
 bool untilIndexExclusive(char * destination, const char * string, int index);
 bool fromCharacterInclusive(char * destination, const char * string, char character);

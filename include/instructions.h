@@ -1,54 +1,73 @@
 #ifndef __INSTRUCTIONS_H__
 #define __INSTRUCTIONS_H__
 
+#include <string.h>
+
+#include "core.h"
+#include "log.h"
+#include "parsing.h"
+#include "words.h"
+
+#define REGISTER_ADDRESS_PREFIX ('@')
+
 typedef enum {
+    ADDRESS_TYPE_NONE        = 0x0,
     ADDRESS_TYPE_IMMEDIATE   = 0x1,
     ADDRESS_TYPE_DIRECT      = 0x3,
     ADDRESS_TYPE_REGISTER    = 0x5
-} InstructionAddressType;
+} OperandAddressType;
 
+/* Encoding type (A,R,E bits) */
 typedef enum {
-    OPCODE_MOV = 0x0,
-    OPCODE_CMP = 0x1,
-    OPCODE_ADD = 0x2,
-    OPCODE_SUB = 0x3,
-    OPCODE_NOT = 0x4,
-    OPCODE_CLR = 0x5,
-    OPCODE_LEA = 0x6,
-    OPCODE_INC = 0x7,
-    OPCODE_DEC = 0x8,
-    OPCODE_JMP = 0x9,
-    OPCODE_BNE = 0xa,
-    OPCODE_RED = 0xb,
-    OPCODE_PRN = 0xc,
-    OPCODE_JSR = 0xd,
-    OPCODE_RTS = 0xe,
-    OPCODE_STP = 0xf
-} InstructionOperationCode;
+    ENCODING_TYPE_ABSOLUTE    = 0x0,
+    ENCODING_TYPE_EXTERNAL    = 0x1,
+    ENCODING_TYPE_RELOCATBALE = 0x2
+} InstructionEncodingType;
+
+typedef union {
+    Word word;
+    struct {
+        unsigned int encodingType: 2;
+        unsigned int destinationAddressType: 3;
+        unsigned int opcode: 4;
+        unsigned int sourceAddressType: 3;
+    } fields;
+} InstructionWord;
+
+typedef union {
+    Word word;
+    struct {
+        unsigned int encodingType: 2;
+        unsigned int immediateValue: 10;
+    } fields;
+} ImmediateOperandWord;
+
+typedef union {
+    Word word;
+    struct {
+        unsigned int encodingType: 2;
+        unsigned int address: 10;
+    } fields;
+} DirectOperandWord;
+
+typedef union {
+    Word word;
+    struct {
+        unsigned int encodingType: 2;
+        unsigned int sourceRegister: 5;
+        unsigned int destinationRegister: 5;
+    } fields;
+} RegisterOperandWord;
 
 typedef struct {
-    const char * name;
-    const InstructionOperationCode code;
-    const unsigned int operandsCount;
+    const char * operation;
+    const unsigned int code;
+    const unsigned int addressTypes[2];
 } InstructionModel;
 
-const InstructionModel INSTRUCTIONS_TABLE[] = {
-    { "mov", OPCODE_MOV, 2 },
-    { "cmp", OPCODE_CMP, 2 },
-    { "add", OPCODE_ADD, 2 },
-    { "sub", OPCODE_SUB, 2 },
-    { "not", OPCODE_NOT, 1 },
-    { "clr", OPCODE_CLR, 1 },
-    { "lea", OPCODE_LEA, 2 },
-    { "inc", OPCODE_INC, 1 },
-    { "dec", OPCODE_DEC, 1 },
-    { "jmp", OPCODE_JMP, 1 },
-    { "bne", OPCODE_BNE, 1 },
-    { "red", OPCODE_RED, 1 },
-    { "prn", OPCODE_PRN, 1 },
-    { "jsr", OPCODE_JSR, 1 },
-    { "rts", OPCODE_RTS, 0 },
-    { "stop", OPCODE_STP, 0 }
-};
+const InstructionModel * findInstructionModel(const char * operation);
+unsigned int getModelOperandsCount(const InstructionModel * model);
+OperandAddressType oeprandStringToAddressType(const char * argument);
+int getDataWordsCount(OperandAddressType sourceAddressType, OperandAddressType destinationAddressType);
 
 #endif /* __INSTRUCTIONS_H__ */
