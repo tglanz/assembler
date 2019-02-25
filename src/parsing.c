@@ -103,14 +103,12 @@ bool tryGetOperation(char * destinationOperation, char * destinationArguments, c
         return false;
     }
 
-    /* get the arguments in a normalized manner (no whitespces) */
-    fromCharacterInclusive(destinationArguments, tmp, ' ');
-    trimStart(destinationArguments, destinationArguments);
-    if (hasLabel){
-        fromCharacterInclusive(destinationArguments, destinationArguments, ' ');
+    idx = substringIndex(line, destinationOperation);
+    idx += strlen(destinationOperation);
+    strcpy(destinationArguments, line + idx);
+    for (idx = 0; idx < WHITSPACES_COUNT; ++idx){
+        removeCharacter(destinationArguments, destinationArguments, WHITSPACES[idx]);       
     }
-    fromIndexInclusive(destinationArguments, destinationArguments, 1);
-    removeCharacter(destinationArguments, destinationArguments, ' ');
     return true;
 }
 

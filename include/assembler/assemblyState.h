@@ -14,9 +14,13 @@ typedef struct {
     WordsVector * data;
     WordsVector * instructions;
 
+    int lineNumber;
+    char * line;
+
     bool hasError;
 } AssemblyState;
 
-AssemblyState createAssemblyState();
+AssemblyState * assemblyStateNew(int maxLineLength);
+void assemblyStateFree(AssemblyState * state);
 
 #endif /* __ASSEMBLY_STATE_H__ */

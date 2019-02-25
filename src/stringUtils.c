@@ -37,6 +37,15 @@ void joinWithDelimiter(char * destination, const char * stringA, const char * st
     destination[0] = '\0';
 }
 
+int substringIndex(const char * string, const char * substring) {
+    char * ptrToSubstring = strstr(string, substring);
+    if (ptrToSubstring == NULL){
+        return -1;
+    }
+    return ptrToSubstring - string;
+
+}
+
 bool substringInRange(char * destination, const char * string, int startInclusive, int endExclusive) {
     int cursor = 0;
 
@@ -84,11 +93,13 @@ bool untilIndexExclusive(char * destination, const char * string, int index){
 }
 
 bool fromCharacterInclusive(char * destination, const char * string, char character){
-    return fromIndexInclusive(destination, string, findCharacterIndex(string, 0, character));
+    int index = findCharacterIndex(string, 0, character);
+    return index >= 0 && fromIndexInclusive(destination, string, index);
 }
 
 bool untilCharacterExclusive(char * destination, const char * string, char character){
-    return untilIndexExclusive(destination, string, findCharacterIndex(string, 0, character));
+    int index = findCharacterIndex(string, 0, character);
+    return index >= 0 && untilIndexExclusive(destination, string, index);
 }
 
 void trimStart(char * destination, const char * string){

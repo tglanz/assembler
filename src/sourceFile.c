@@ -6,12 +6,13 @@ bool isCommentLine(const char * line){
 
 bool readLine(FILE * file, char * destination){
     int character;
+    int idx = 0;
     while ((character = fgetc(file)) != EOF && character != '\n'){
-        *destination = character;
-        destination += 1;
+        destination[idx] = character;
+        ++idx;
     }
-    *destination = '\0';
-    return character != EOF;
+    destination[idx] = '\0';
+    return idx != 0 || character != EOF;
 }
 
 bool isMeaningfulLine(const char * line){

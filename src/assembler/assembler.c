@@ -4,7 +4,8 @@ void generateOutputs(AssemblyState * state, const char * baseName);
 
 bool assembleInput(const char * baseName) {
     SourceFile * sourceFile;
-    AssemblyState state = createAssemblyState();
+    AssemblyState * state;
+    bool success = false;
 
     sourceFile = openSourceFile(baseName);
     if (sourceFile == NULL){
@@ -12,19 +13,24 @@ bool assembleInput(const char * baseName) {
         return false;
     }
 
-    runFirstPass(&state, sourceFile);
-    if (!state.hasError){
+    state = assemblyStateNew(MAX_LINE_LENGTH);
+
+    runFirstPass(state, sourceFile);
+    if (!state->hasError){
         /* rewind file */
         fseek(sourceFile, 0, SEEK_SET);
-        runSecondPass(&state, sourceFile);
+        runSecondPass(state, sourceFile);
     }
 
     fclose(sourceFile);
-    if (!state.hasError){
-        generateOutputs(&state, baseName);
+    if (!state->hasError){
+        generateOutputs(state, baseName);
     }
 
-    return !state.hasError;
+    success = !state->hasError;
+    assemblyStateFree(state);
+
+    return success;
 }
 
 

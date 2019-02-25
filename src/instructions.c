@@ -148,3 +148,7 @@ int registerIndexFromArgumentString(const char * argumentString){
 
     return registerIndex;
 }
+
+bool isAvailableAddressType(OperandAddressType value, OperandAddressType bitflags){
+    return (value & bitflags) == value;
+}

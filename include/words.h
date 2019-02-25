@@ -13,7 +13,7 @@
 #define WORDS_VECTOR_GROW_FACTOR (2)
 
 typedef struct {
-    int raw: WORD_SIZE;
+    unsigned int raw: WORD_SIZE;
 } Word;
 
 typedef struct {

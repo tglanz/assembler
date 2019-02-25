@@ -74,5 +74,6 @@ unsigned int getModelOperandsCount(const InstructionModel * model);
 OperandAddressType oeprandStringToAddressType(const char * argument);
 int getDataWordsCount(OperandAddressType sourceAddressType, OperandAddressType destinationAddressType);
 int registerIndexFromArgumentString(const char * argumentString);
+bool isAvailableAddressType(OperandAddressType value, OperandAddressType bitflags);
 
 #endif /* __INSTRUCTIONS_H__ */
