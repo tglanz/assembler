@@ -7,10 +7,11 @@
 #include "symbols.h"
 
 typedef struct {
-    unsigned int IC;
-    unsigned int DC;
+    uint IC;
+    uint DC;
 
-    SymbolsSet * symbols;
+    SymbolsTable * symbols;
+    SymbolsTable * externalSymbols;
     WordsVector * data;
     WordsVector * instructions;
 

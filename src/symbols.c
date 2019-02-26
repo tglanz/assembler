@@ -1,77 +1,100 @@
 #include "symbols.h"
 
 /* internal utility, re-allocate memory if required */
-void symbolsSetgrowAccordingly(SymbolsSet * set){
-    int idx;
+void symbolsTableGrowAccordingly(SymbolsTable * table){
+    uint idx;
     Symbol * data;
 
-    if (set != NULL){
-        if (set->size == set->capacity){
-            if (set->capacity == 0){
-                set->capacity = SYMBOLS_SET_INITIAL_CAPACITY;
+    if (table != NULL){
+        if (table->size == table->capacity){
+            if (table->capacity == 0){
+                table->capacity = SYMBOLS_TABLE_INITIAL_CAPACITY;
             } else {
-                set->capacity *= SYMBOLS_SET_GROW_FACTOR;
+                table->capacity *= SYMBOLS_TABLE_GROW_FACTOR;
             }
-            data = (Symbol*)calloc(set->capacity, sizeof(Symbol));
-            if (set->data != NULL){
-                for (idx = 0; idx < set->size; ++idx){
-                    data[idx] = set->data[idx];
+            data = (Symbol*)calloc(table->capacity, sizeof(Symbol));
+            if (table->data != NULL){
+                for (idx = 0; idx < table->size; ++idx){
+                    data[idx] = table->data[idx];
                 }
-                free(set->data);
+                free(table->data);
             }
-            set->data = data;
-            logDebug("symbols set has regrown from %d to %d", set->size, set->capacity);
+            table->data = data;
+            logDebug("symbols table has regrown from %d to %d", table->size, table->capacity);
         }
     }
 }
 
-SymbolsSet * symbolsSetNew() {
-    SymbolsSet * set = (SymbolsSet*)malloc(sizeof(SymbolsSet));;
-    set->capacity = 0;
-    set->size = 0;
-    set->data = NULL;
-    symbolsSetgrowAccordingly(set);
-    return set;
+SymbolsTable * symbolsTableNew(string name) {
+    SymbolsTable * table = (SymbolsTable*)malloc(sizeof(SymbolsTable));;
+    table->name = name;
+    table->capacity = 0;
+    table->size = 0;
+    table->data = NULL;
+    symbolsTableGrowAccordingly(table);
+    return table;
 }
-void symbolsSetFree(SymbolsSet * set) {
-    int index;
+void symbolsTableFree(SymbolsTable * table) {
+    uint index;
 
-    if (set != NULL){
-        if (set->data != NULL){
-            for (index = 0; index < set->size; ++index){
-                free(set->data[index].key);
+    if (table != NULL){
+        if (table->data != NULL){
+            for (index = 0; index < table->size; ++index){
+                free(table->data[index].key);
             }
 
-            free(set->data);
+            free(table->data);
         }
     }
 
-    free(set);
+    free(table);
 }
-bool symbolsSetInsert(SymbolsSet * set, SymbolType type, const char * key, unsigned int value) {
+
+void symbolsTableAppend(SymbolsTable * table, SymbolType type, string key, uint value) {
+    /* can have duplicates by key */
     Symbol symbol;
+    symbol.type = type;
+    symbol.value = value;
+    symbol.flags = SYMBOL_FLAG_NONE;
+    symbol.key = strdup(key);
+    table->data[table->size] = symbol;
+    ++table->size;
+    logDebug("appended symbol: %s, value: %d, type: %d", symbol.key, symbol.value, symbol.type);
+    symbolsTableGrowAccordingly(table);
+}
 
-    if (symbolsSetFind(set, key) != NULL){
+bool symbolsTableInsert(SymbolsTable * table, SymbolType type, string key, uint value) {
+    /* cannot have duplicates by key */
+    if (symbolsTableFind(table, key) != NULL){
         return false;
     }
 
-    symbol.type = type;
-    symbol.value = value;
-    symbol.key = strdup(key);
-
-    set->data[set->size] = symbol;
-    ++set->size;
-    logDebug("added symbol: %s, value: %d, type: %d", symbol.key, symbol.value, symbol.type);
-    symbolsSetgrowAccordingly(set);
+    symbolsTableAppend(table, type, key, value);
     return true;
 }
 
-const Symbol * symbolsSetFind(SymbolsSet * set, const char * key){
-    int idx;
-    for (idx = 0; idx < set->size; ++idx){
-        if (strcmp(set->data[idx].key, key) == 0){
-            return &set->data[idx];
+Symbol * symbolsTableGet(SymbolsTable * table, uint idx) {
+    if (idx < table->size){
+        return &table->data[idx];
+    }
+    return NULL;
+}
+
+Symbol * symbolsTableFind(SymbolsTable * table, string key){
+    uint idx;
+    for (idx = 0; idx < table->size; ++idx){
+        if (strcmp(table->data[idx].key, key) == 0){
+            return &table->data[idx];
         }
     }    
     return NULL;
+}
+
+bool symbolsTableFlag(SymbolsTable * table, string key, uint flag) {
+    Symbol * symbol = symbolsTableFind(table, key);
+    if (symbol != NULL){
+        set_flag(flag, &symbol->flags);
+        return true;
+    }
+    return false;
 }

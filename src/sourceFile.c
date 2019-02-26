@@ -1,6 +1,6 @@
 #include "sourceFile.h"
 
-bool isCommentLine(const char * line){
+bool isCommentLine(string line){
     return strlen(line) > 1 && line[0] == COMMENT_CHAR;
 }
 
@@ -15,11 +15,11 @@ bool readLine(FILE * file, char * destination){
     return idx != 0 || character != EOF;
 }
 
-bool isMeaningfulLine(const char * line){
+bool isMeaningfulLine(string line){
     return !isWhitespaceLine(line) && !isCommentLine(line);
 }
 
-SourceFile * openSourceFile(const char * baseName){
+SourceFile * openSourceFile(string baseName){
     char filePath[MAX_FILE_PATH_LENGTH];
     joinWithDelimiter(filePath, baseName, "as", '.');
     return fopen(filePath, "r");

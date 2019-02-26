@@ -6,7 +6,7 @@ void logSetLevel(LogLevel level){
     gLogLevel = level;
 }
 
-void writeHeader(const char * header){
+void writeHeader(string header){
 
     char timeString[10];
     time_t raw;
@@ -24,7 +24,7 @@ void writeHeader(const char * header){
     printf("%s [%s] ", timeString, header);
 }
 
-void logDebug(const char * fmt, ...) {
+void logDebug(string fmt, ...) {
     va_list args;
     if (LOG_LEVEL_DEBUG >= gLogLevel){
         writeHeader("DEBG");
@@ -35,7 +35,7 @@ void logDebug(const char * fmt, ...) {
     }
 }
 
-void logInfo(const char * fmt, ...) {
+void logInfo(string fmt, ...) {
     va_list args;
     if (LOG_LEVEL_INFO >= gLogLevel){
         writeHeader("INFO");
@@ -46,7 +46,7 @@ void logInfo(const char * fmt, ...) {
     }
 }
 
-void logWarning(const char * fmt, ...) {
+void logWarning(string fmt, ...) {
     va_list args;
     if (LOG_LEVEL_WARNING >= gLogLevel){
         writeHeader("WARN");
@@ -57,7 +57,7 @@ void logWarning(const char * fmt, ...) {
     }
 }
 
-void logError(const char * fmt, ...) {
+void logError(string fmt, ...) {
     va_list args;
     if (LOG_LEVEL_ERROR >= gLogLevel){
         writeHeader("EROR");

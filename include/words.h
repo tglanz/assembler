@@ -13,20 +13,22 @@
 #define WORDS_VECTOR_GROW_FACTOR (2)
 
 typedef struct {
-    unsigned int raw: WORD_SIZE;
+    uint raw: WORD_SIZE;
 } Word;
 
 typedef struct {
-    const char * name;
-    unsigned int size;
-    unsigned int capacity;
+    string name;
+    uint size;
+    uint capacity;
     Word * data;
 } WordsVector;
 
-WordsVector * wordsVectorNew(const char * name);
+void wordToBase64(char * destination, Word word);
+
+WordsVector * wordsVectorNew(string name);
 void wordsVectorFree(WordsVector * vector);
 void wordsVectorAppend(WordsVector * vector, Word word);
-Word wordsVectorGet(WordsVector * vector, int index);
-void wordsVectorSet(WordsVector * vector, int index, Word word);
+Word wordsVectorGet(const WordsVector * vector, uint index);
+void wordsVectorSet(WordsVector * vector, uint index, Word word);
 
 #endif /* __WORDS_VECTOR_H_ */

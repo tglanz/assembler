@@ -1,6 +1,6 @@
 #include "assembler/firstPass.h"
 
-void handleExternDirective(AssemblyState * state){
+void firstPassHandleExternDirective(AssemblyState * state){
     char arguments[MAX_LINE_LENGTH];
     char argument[MAX_LINE_LENGTH];
     int argIndex = 0;
@@ -12,38 +12,19 @@ void handleExternDirective(AssemblyState * state){
     }
     
     while (getSplitComponent(argument, arguments, " ", argIndex)){
-        if (!symbolsSetInsert(state->symbols, SYMBOL_TYPE_EXTERN, argument, 0)){
-            logWarning("line %3d: already have symbol: %s",
-                       state->lineNumber, argument);
+        if (!symbolsTableInsert(state->symbols, SYMBOL_TYPE_NONE, argument, 0)){
+            logError("line %3d: cannot mark as external, already have symbol: `%s`",
+                     state->lineNumber, argument);
+            state->hasError = true;
+        } else {
+            symbolsTableFlag(state->symbols, argument, SYMBOL_FLAG_EXTERNAL);
         }
         ++argIndex;
     }
 }
 
-void handleEntryDirective(AssemblyState * state){
-    char arguments[MAX_LINE_LENGTH];
-    char argument[MAX_LINE_LENGTH];
-    int argIndex = 0;
-
-    if (!tryGetDirectiveArgs(arguments, state->line) || strlen(arguments) == 0){
-        logError("line %3d: missing arguments for entry directive", state->lineNumber);
-        state->hasError = true;
-        return;
-    }
-
-    while (getSplitComponent(argument, arguments, " ", argIndex)){
-        if (argIndex > 0){
-            logWarning("line %3d: entry directive can have only a single label as argument, ignoring `%s`",
-                       state->lineNumber, argument);
-        } else if (!symbolsSetInsert(state->symbols, SYMBOL_TYPE_ENTRY, argument, 0)){
-            logWarning("line %3d: duplicate symbol: `%s`", state->lineNumber, argument);
-        }
-        ++argIndex;
-    }
-}
-
-void handleStringDirective(AssemblyState * state){
-    int cursor;
+void firstPassHandleStringDirective(AssemblyState * state){
+    uint idx;
     Word word;
     char stringData[MAX_LINE_LENGTH];
 
@@ -51,17 +32,19 @@ void handleStringDirective(AssemblyState * state){
         logError("line %3d: invalid string directive, expected exactly one argument", state->lineNumber);
         state->hasError = true;
     } else {
-        cursor = 0;
-        while (stringData[cursor] != '\0'){
-            word.raw = stringData[cursor];
+        getSplitComponent(stringData, state->line, "\"", 1);
+        for (idx = 0; idx < strlen(stringData); ++idx){
+            word.raw = stringData[idx];
             wordsVectorAppend(state->data, word);
-            state->DC += 1;
-            ++cursor;
         }
+
+        word.raw = 0;
+        wordsVectorAppend(state->data, word);
+        state->DC += strlen(stringData) + 1;
     }
 }
 
-void handleDataDirective(AssemblyState * state){
+void firstPassHandleDataDirective(AssemblyState * state){
     char arguments[MAX_LINE_LENGTH];
     char argument[MAX_LINE_LENGTH];
     int argIndex = 0;
@@ -88,7 +71,7 @@ void handleDataDirective(AssemblyState * state){
 }
 
 void setInstructionAddressTypes(
-    AssemblyState * state, const InstructionModel * instructionModel, InstructionWord * instructionWord, const char * arguments){
+    AssemblyState * state, const InstructionModel * instructionModel, InstructionWord * instructionWord, string arguments){
     int idx, operandsCount;
     char argument[MAX_LINE_LENGTH];
     
@@ -122,9 +105,7 @@ void setInstructionAddressTypes(
     }    
 }
 
-int ids = 0;
-
-void handleOperation(AssemblyState * state, const char * operation, const char * arguments) {
+void firstPassHandleOperation(AssemblyState * state, string operation, string arguments) {
     const InstructionModel * instructionModel;
     InstructionWord instructionWord;
     int idx, dataWordsCount;
@@ -150,7 +131,7 @@ void handleOperation(AssemblyState * state, const char * operation, const char *
     dataWordsCount = getDataWordsCount(instructionWord.fields.sourceAddressType,
                                        instructionWord.fields.destinationAddressType);
     for (idx = 0; idx < dataWordsCount; ++idx){
-        instructionWord.word.raw = 0xaaa;
+        instructionWord.word.raw = 0;
         wordsVectorAppend(state->instructions, instructionWord.word);
     }
 
@@ -158,14 +139,13 @@ void handleOperation(AssemblyState * state, const char * operation, const char *
 }
 
 void updateDataSymbolsWithInstructionsCounter(AssemblyState * state) {
-    int idx;
-    unsigned int newValue;
-
+    uint idx, newValue;
     Symbol * symbol;
+
     for (idx = 0; idx < state->symbols->size; ++idx){
         symbol = &state->symbols->data[idx];
         if (symbol->type == SYMBOL_TYPE_DATA){
-            newValue = symbol->value + state->IC;
+            newValue = symbol->value + state->IC + INSTRUCTIONS_OFFSET;
             logDebug("updating data sybmol: %s value %d, to %d", symbol->key, symbol->value, newValue);
             symbol->value = newValue;
         }
@@ -182,6 +162,7 @@ void runFirstPass(AssemblyState * state, SourceFile * sourceFile){
 
     /* Defaults */
     state->lineNumber = 0;
+
     while (readLine(sourceFile, state->line)){
         ++state->lineNumber;
         logDebug("first pass, read line: line %3d: %s", state->lineNumber, state->line);
@@ -209,20 +190,19 @@ void runFirstPass(AssemblyState * state, SourceFile * sourceFile){
                         logWarning("line %3d: entry directive should not have a label. got label `%s`",
                                    state->lineNumber, label);
                     }
-                    handleEntryDirective(state);
                     break;
                 case DIRECTIVE_TYPE_EXTERN:
-                    handleExternDirective(state);
+                    firstPassHandleExternDirective(state);
                     break;
                 case DIRECTIVE_TYPE_STRING:
                     if (hasLabel)
-                        symbolsSetInsert(state->symbols, SYMBOL_TYPE_DATA, label, state->DC);
-                    handleStringDirective(state);
+                        symbolsTableInsert(state->symbols, SYMBOL_TYPE_DATA, label, state->DC);
+                    firstPassHandleStringDirective(state);
                     break;
                 case DIRECTIVE_TYPE_DATA:
                     if (hasLabel)
-                        symbolsSetInsert(state->symbols, SYMBOL_TYPE_DATA, label, state->DC);
-                    handleDataDirective(state);
+                        symbolsTableInsert(state->symbols, SYMBOL_TYPE_DATA, label, state->DC);
+                    firstPassHandleDataDirective(state);
                     break;
                 case DIRECTIVE_TYPE_INVALID:
                     logError("line %3d: invalid directive: `%s`", state->lineNumber, directive);
@@ -230,10 +210,10 @@ void runFirstPass(AssemblyState * state, SourceFile * sourceFile){
                     break;
             }
         } else if (tryGetOperation(operation, operationArguments, state->line, hasLabel)){
-            if (hasLabel && !symbolsSetInsert(state->symbols, SYMBOL_TYPE_CODE, label, state->IC)){
+            if (hasLabel && !symbolsTableInsert(state->symbols, SYMBOL_TYPE_CODE, label, state->IC + INSTRUCTIONS_OFFSET)){
                 logWarning("line %3d: already have symbol `%s`, ignoring", state->lineNumber, label);
             }
-            handleOperation(state, operation, operationArguments);
+            firstPassHandleOperation(state, operation, operationArguments);
         } else {
             logError("line %3d: unknown error, unable to parse", state->lineNumber);
             state->hasError = true;

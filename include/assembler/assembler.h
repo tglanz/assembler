@@ -12,7 +12,10 @@
 #include "assembler/assemblyState.h"
 #include "assembler/firstPass.h"
 #include "assembler/secondPass.h"
+#include "assembler/outputs.h"
 
-bool assembleInput(const char * baseName);
+#define INSTRUCTIONS_OFFSET (100)
+
+bool assembleInput(string baseName);
 
 #endif /* __ASSEMBLER_H__ */

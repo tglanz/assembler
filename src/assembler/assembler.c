@@ -1,8 +1,8 @@
 #include "assembler/assembler.h"
 
-void generateOutputs(AssemblyState * state, const char * baseName);
+void generateOutputs(AssemblyState * state, string baseName);
 
-bool assembleInput(const char * baseName) {
+bool assembleInput(string baseName) {
     SourceFile * sourceFile;
     AssemblyState * state;
     bool success = false;
@@ -34,8 +34,9 @@ bool assembleInput(const char * baseName) {
 }
 
 
-void generateOutputs(AssemblyState * state, const char * baseName){
-    state->hasError = true;
-    logError("generateOutputs::NotImplemented");
+void generateOutputs(AssemblyState * state, string baseName){
+    generateEntriesFile(baseName, state);
+    generateExternalsFile(baseName, state);
+    generateObjectFile(baseName, state);
 }
 

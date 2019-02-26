@@ -12,6 +12,7 @@
         "xutility": "cpp",
         "windows.h": "c",
         "assembler.h": "c",
-        "assemblystate.h": "c"
+        "assemblystate.h": "c",
+        "symbols.h": "c"
     }
 }

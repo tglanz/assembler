@@ -19,9 +19,9 @@ typedef enum {
 #define LOG_DEFAULT_LEVEL LOG_LEVEL_INFO
 
 void logSetLevel(LogLevel level);
-void logDebug(const char * fmt, ...);
-void logInfo(const char * fmt, ...);
-void logWarning(const char * fmt, ...);
-void logError(const char * fmt, ...);
+void logDebug(string fmt, ...);
+void logInfo(string fmt, ...);
+void logWarning(string fmt, ...);
+void logError(string fmt, ...);
 
 #endif /* __LOG_H__ */

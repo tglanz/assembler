@@ -3,32 +3,17 @@
 const char WHITSPACES[] = { ' ', '\t', '\n' };
 const int WHITSPACES_COUNT = sizeof(WHITSPACES) / sizeof(char);
 
-DirectiveType directiveTypeFromString(const char * string){
-    if (strcmp(string, "data") == 0){
+DirectiveType directiveTypeFromString(string directiveString){
+    if (strcmp(directiveString, "data") == 0){
         return DIRECTIVE_TYPE_DATA;
-    } else if (strcmp(string, "string") == 0){
+    } else if (strcmp(directiveString, "string") == 0){
         return DIRECTIVE_TYPE_STRING;
-    } else if (strcmp(string, "entry") == 0){
+    } else if (strcmp(directiveString, "entry") == 0){
         return DIRECTIVE_TYPE_ENTRY;
-    } else if (strcmp(string, "extern") == 0){
+    } else if (strcmp(directiveString, "extern") == 0){
         return DIRECTIVE_TYPE_EXTERN;
     } else {
         return DIRECTIVE_TYPE_INVALID;
-    }
-}
-
-const char * directiveStringFromType(DirectiveType type){
-    switch (type){
-        case DIRECTIVE_TYPE_DATA:
-            return "data";
-        case DIRECTIVE_TYPE_ENTRY:
-            return "entry";
-        case DIRECTIVE_TYPE_EXTERN:
-            return "extern";
-        case DIRECTIVE_TYPE_STRING:
-            return "string";
-        default:
-            return "invalid";
     }
 }
 
@@ -42,7 +27,7 @@ bool isWhitespaceCharacter(char character){
     return false;
 }
 
-bool isWhitespaceLine(const char * line){
+bool isWhitespaceLine(string line){
     int cursor = strlen(line);
     while (--cursor >= 0){
         if (!isWhitespaceCharacter(line[cursor])){
@@ -61,20 +46,20 @@ bool isNumericCharacter(char character){
     return character >= '0' && character <= '9';
 }
 
-bool tryGetLabel(char * destination, const char * line) {
+bool tryGetLabel(char * destination, string line) {
     if (untilCharacterExclusive(destination, line, ':')){
         return true;
     }
     return false;
 }
 
-bool tryGetDirective(char * destination, const char * line){
+bool tryGetDirective(char * destination, string line){
     return fromCharacterInclusive(destination, line, '.') &&
            untilCharacterExclusive(destination, destination, ' ') &&
            fromIndexInclusive(destination, destination, 1);
 }
 
-bool tryGetDirectiveArgs(char * destination, const char * line){
+bool tryGetDirectiveArgs(char * destination, string line){
     if (fromCharacterInclusive(destination, line, '.') && fromCharacterInclusive(destination, destination, ' ')){
         trimStart(destination, destination);
         trimRepeatedCharacter(destination, destination, ' ');
@@ -83,7 +68,7 @@ bool tryGetDirectiveArgs(char * destination, const char * line){
     return false;
 }
 
-bool tryGetOperation(char * destinationOperation, char * destinationArguments, const char * line, bool hasLabel){
+bool tryGetOperation(char * destinationOperation, char * destinationArguments, string line, bool hasLabel){
     int idx;
     char tmp[MAX_LINE_LENGTH];
 
@@ -106,13 +91,11 @@ bool tryGetOperation(char * destinationOperation, char * destinationArguments, c
     idx = substringIndex(line, destinationOperation);
     idx += strlen(destinationOperation);
     strcpy(destinationArguments, line + idx);
-    for (idx = 0; idx < WHITSPACES_COUNT; ++idx){
-        removeCharacter(destinationArguments, destinationArguments, WHITSPACES[idx]);       
-    }
+    removeWhitespaces(destinationArguments, destinationArguments);
     return true;
 }
 
-bool isValidLabel(const char * label){
+bool isValidLabel(string label){
     char character;
     int size = strlen(label);
 
@@ -138,4 +121,11 @@ bool isValidLabel(const char * label){
 
     /* check the first character */
     return isAlphabeticalCharacter(label[0], true, true);
+}
+
+void removeWhitespaces(char * destination, string source) {
+    uint idx;
+    for (idx = 0; idx < WHITSPACES_COUNT; ++idx){
+        removeCharacter(destination, source, WHITSPACES[idx]);       
+    }    
 }

@@ -23,19 +23,20 @@ typedef enum {
     DIRECTIVE_TYPE_INVALID
 } DirectiveType;
 
-DirectiveType directiveTypeFromString(const char * string);
-const char * stringFromDirectiveType(DirectiveType directiveType);
+DirectiveType directiveTypeFromString(string directiveString);
 
 bool isWhitespaceCharacter(char character);
-bool isWhitespaceLine(const char * line);
+bool isWhitespaceLine(string line);
 bool isAlphabeticalCharacter(char character, bool includeLowerCase, bool includeUpperCase);
 bool isNumericCharacter(char character);
 
-bool tryGetLabel(char * destination, const char * line);
-bool tryGetDirective(char * destination, const char * line);
-bool tryGetDirectiveArgs(char * destination, const char * line);
-bool tryGetOperation(char * destinationOperation, char * destinatinoArguments, const char * line, bool hasLabel);
+bool tryGetLabel(char * destination, string line);
+bool tryGetDirective(char * destination, string line);
+bool tryGetDirectiveArgs(char * destination, string line);
+bool tryGetOperation(char * destinationOperation, char * destinatinoArguments, string line, bool hasLabel);
 
-bool isValidLabel(const char * label);
+bool isValidLabel(string label);
+
+void removeWhitespaces(char * destination, string source);
 
 #endif /* __PARSING_H__ */

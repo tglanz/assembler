@@ -7,32 +7,43 @@
 
 #include "core.h"
 #include "log.h"
+#include "bitflags.h"
 
-#define SYMBOLS_SET_INITIAL_CAPACITY (4)
-#define SYMBOLS_SET_GROW_FACTOR (2)
+#define SYMBOLS_TABLE_INITIAL_CAPACITY (4)
+#define SYMBOLS_TABLE_GROW_FACTOR (2)
 
 typedef enum {
+    SYMBOL_TYPE_NONE,
     SYMBOL_TYPE_DATA,
-    SYMBOL_TYPE_CODE,
-    SYMBOL_TYPE_ENTRY, 
-    SYMBOL_TYPE_EXTERN
+    SYMBOL_TYPE_CODE
 } SymbolType;
+
+typedef enum {
+    SYMBOL_FLAG_NONE = 0x0,
+    SYMBOL_FLAG_ENTRY = 0x1,
+    SYMBOL_FLAG_EXTERNAL = 0x2
+} SymbolFlags;
 
 typedef struct {
     char * key;
     SymbolType type;
-    unsigned int value;
+    SymbolFlags flags;
+    uint value;
 } Symbol;
 
 typedef struct {
-    unsigned int size;
-    unsigned int capacity;
+    string name;
+    uint size;
+    uint capacity;
     Symbol * data;
-} SymbolsSet;
+} SymbolsTable;
 
-SymbolsSet * symbolsSetNew();
-void symbolsSetFree(SymbolsSet * set);
-bool symbolsSetInsert(SymbolsSet * set, SymbolType type, const char * key, unsigned int value);
-const Symbol * symbolsSetFind(SymbolsSet * set, const char * key);
+SymbolsTable * symbolsTableNew(string name);
+void symbolsTableFree(SymbolsTable * table);
+bool symbolsTableInsert(SymbolsTable * table, SymbolType type, string key, uint value);
+void symbolsTableAppend(SymbolsTable * table, SymbolType type, string key, uint value);
+Symbol * symbolsTableGet(SymbolsTable * table, uint idx);
+Symbol * symbolsTableFind(SymbolsTable * table, string key);
+bool symbolsTableFlag(SymbolsTable * table, string key, uint flag);
 
 #endif /* __SYMBOLS_H__ */

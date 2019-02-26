@@ -21,18 +21,18 @@
  */
 #include "stringUtils.h"
 
-bool getSplitComponent(char * destination, const char * string, const char * delimiters, int componentIndex);
-void joinWithDelimiter(char * destination, const char * stringA, const char * stringB, char delimiter);
-int substringIndex(const char * string, const char * substring);
-bool substringInRange(char * destination, const char * string, int startInclusive, int endExclusive);
-int findCharacterIndex(const char * string, int offset, char character);
-int countCharacterOccurrences(const char * string, int offset, char character);
-bool fromIndexInclusive(char * destination, const char * string, int index);
-bool untilIndexExclusive(char * destination, const char * string, int index);
-bool fromCharacterInclusive(char * destination, const char * string, char character);
-bool untilCharacterExclusive(char * destination, const char * string, char character);
-void trimStart(char * destination, const char * string);
-void trimRepeatedCharacter(char * destination, const char * string, char character);
-void removeCharacter(char * destination, const char * string, char character);
+bool getSplitComponent(char * destination, string source, string delimiters, int componentIndex);
+void joinWithDelimiter(char * destination, string stringA, string stringB, char delimiter);
+int substringIndex(string source, string substring);
+bool substringInRange(char * destination, string source, int startInclusive, int endExclusive);
+int findCharacterIndex(string source, int offset, char character);
+int countCharacterOccurrences(string source, int offset, char character);
+bool fromIndexInclusive(char * destination, string source, int index);
+bool untilIndexExclusive(char * destination, string source, int index);
+bool fromCharacterInclusive(char * destination, string source, char character);
+bool untilCharacterExclusive(char * destination, string source, char character);
+void trimStart(char * destination, string source);
+void trimRepeatedCharacter(char * destination, string source, char character);
+void removeCharacter(char * destination, string source, char character);
 
 #endif /* __STRING_UTILS_H__ */

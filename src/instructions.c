@@ -85,7 +85,7 @@ const InstructionModel INSTRUCTIONS_TABLE[] = {
     }
 };
 
-const InstructionModel * findInstructionModel(const char * operation){
+const InstructionModel * findInstructionModel(string operation){
     int idx;
     for (idx = 0; idx < sizeof(INSTRUCTIONS_TABLE) / sizeof(InstructionModel); ++idx){
         if (strcmp(operation, INSTRUCTIONS_TABLE[idx].operation) == 0){
@@ -96,12 +96,13 @@ const InstructionModel * findInstructionModel(const char * operation){
     return NULL;
 }
 
-unsigned int getModelOperandsCount(const InstructionModel * model){
+uint getModelOperandsCount(const InstructionModel * model){
+    /* for each address type, check its lsbit */
     return (model->addressTypes[0] & ADDRESS_TYPE_IMMEDIATE) + 
            (model->addressTypes[1] & ADDRESS_TYPE_IMMEDIATE);
 }
 
-OperandAddressType oeprandStringToAddressType(const char * argument){
+OperandAddressType oeprandStringToAddressType(string argument){
     int tmp;
 
     if (strlen(argument) != 0){
@@ -137,7 +138,7 @@ int getDataWordsCount(OperandAddressType sourceAddressType, OperandAddressType d
     return count;
 }
 
-int registerIndexFromArgumentString(const char * argumentString){
+int registerIndexFromArgumentString(string argumentString){
     int registerIndex;
     if (sscanf(argumentString + REGISTER_ARGUMENT_INDEX_OFFSET, "%d", &registerIndex) != 1 ||
         registerIndex < REGISTER_MIN ||

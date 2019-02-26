@@ -1,10 +1,10 @@
 #include "stringUtils.h"
 
-bool getSplitComponent(char * destination, const char * string, const char * delimiters, int componentIndex){
-    char *source, *component;
-    source = strdup(string);
+bool getSplitComponent(char * destination, string source, string delimiters, int componentIndex){
+    char *duplicated, *component;
+    duplicated = strdup(source);
 
-    component = strtok(source, delimiters);
+    component = strtok(duplicated, delimiters);
 
     while (component != NULL && componentIndex > 0){
         component = strtok(NULL, delimiters);
@@ -16,11 +16,11 @@ bool getSplitComponent(char * destination, const char * string, const char * del
         strcpy(destination, component);
     }
 
-    free(source);
+    free(duplicated);
     return destination[0] != '\0';
 }
 
-void joinWithDelimiter(char * destination, const char * stringA, const char * stringB, char delimiter){
+void joinWithDelimiter(char * destination, string stringA, string stringB, char delimiter){
     char delimiterString[1];
 
     delimiterString[0] = delimiter;
@@ -37,16 +37,16 @@ void joinWithDelimiter(char * destination, const char * stringA, const char * st
     destination[0] = '\0';
 }
 
-int substringIndex(const char * string, const char * substring) {
-    char * ptrToSubstring = strstr(string, substring);
+int substringIndex(string source, string substring) {
+    char * ptrToSubstring = strstr(source, substring);
     if (ptrToSubstring == NULL){
         return -1;
     }
-    return ptrToSubstring - string;
+    return ptrToSubstring - source;
 
 }
 
-bool substringInRange(char * destination, const char * string, int startInclusive, int endExclusive) {
+bool substringInRange(char * destination, string source, int startInclusive, int endExclusive) {
     int cursor = 0;
 
     if (startInclusive >= endExclusive){
@@ -54,7 +54,7 @@ bool substringInRange(char * destination, const char * string, int startInclusiv
     }
 
     while (startInclusive + cursor < endExclusive){
-        destination[cursor] = string[startInclusive + cursor];
+        destination[cursor] = source[startInclusive + cursor];
         ++cursor;
     }
 
@@ -62,9 +62,9 @@ bool substringInRange(char * destination, const char * string, int startInclusiv
     return true;
 }
 
-int findCharacterIndex(const char * string, int offset, char character){
-    while (offset < strlen(string)){
-        if (string[offset] == character){
+int findCharacterIndex(string source, int offset, char character){
+    while (offset < strlen(source)){
+        if (source[offset] == character){
             return offset;
         }
         ++offset;
@@ -73,10 +73,10 @@ int findCharacterIndex(const char * string, int offset, char character){
     return -1;
 }
 
-int countCharacterOccurrences(const char * string, int offset, char character) {
+int countCharacterOccurrences(string source, int offset, char character) {
     int count = 0;
-    while (offset < strlen(string)){
-        if (string[offset] == character){
+    while (offset < strlen(source)){
+        if (source[offset] == character){
             ++count;
         }
         ++offset;
@@ -84,39 +84,39 @@ int countCharacterOccurrences(const char * string, int offset, char character) {
     return count;
 }
 
-bool fromIndexInclusive(char * destination, const char * string, int index){
-    return substringInRange(destination, string, index, strlen(string));
+bool fromIndexInclusive(char * destination, string source, int index){
+    return substringInRange(destination, source, index, strlen(source));
 }
 
-bool untilIndexExclusive(char * destination, const char * string, int index){
-    return substringInRange(destination, string, 0, index);
+bool untilIndexExclusive(char * destination, string source, int index){
+    return substringInRange(destination, source, 0, index);
 }
 
-bool fromCharacterInclusive(char * destination, const char * string, char character){
-    int index = findCharacterIndex(string, 0, character);
-    return index >= 0 && fromIndexInclusive(destination, string, index);
+bool fromCharacterInclusive(char * destination, string source, char character){
+    int index = findCharacterIndex(source, 0, character);
+    return index >= 0 && fromIndexInclusive(destination, source, index);
 }
 
-bool untilCharacterExclusive(char * destination, const char * string, char character){
-    int index = findCharacterIndex(string, 0, character);
-    return index >= 0 && untilIndexExclusive(destination, string, index);
+bool untilCharacterExclusive(char * destination, string source, char character){
+    int index = findCharacterIndex(source, 0, character);
+    return index >= 0 && untilIndexExclusive(destination, source, index);
 }
 
-void trimStart(char * destination, const char * string){
+void trimStart(char * destination, string source){
     int idx = 0;
-    while (isWhitespaceCharacter(string[idx])){
+    while (isWhitespaceCharacter(source[idx])){
         ++idx;
     }
 
-    fromIndexInclusive(destination, string, idx);
+    fromIndexInclusive(destination, source, idx);
 }
 
-void trimRepeatedCharacter(char * destination, const char * string, char character){
+void trimRepeatedCharacter(char * destination, string source, char character){
     int idx;
 
-    for (idx = 0; idx < strlen(string); ++idx){
-        if (idx == 0 || string[idx] != character || destination[-1] != character){
-            destination[0] = string[idx];
+    for (idx = 0; idx < strlen(source); ++idx){
+        if (idx == 0 || source[idx] != character || destination[-1] != character){
+            destination[0] = source[idx];
             destination += 1;
         }
     }
@@ -124,12 +124,12 @@ void trimRepeatedCharacter(char * destination, const char * string, char charact
     destination[0] = '\0';
 }
 
-void removeCharacter(char * destination, const char * string, char character){
+void removeCharacter(char * destination, string source, char character){
     int idx;
 
-    for (idx = 0; idx < strlen(string); ++idx){
-        if (string[idx] != character){
-            destination[0] = string[idx];
+    for (idx = 0; idx < strlen(source); ++idx){
+        if (source[idx] != character){
+            destination[0] = source[idx];
             destination += 1;
         }
     }

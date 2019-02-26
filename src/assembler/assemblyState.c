@@ -5,7 +5,8 @@ AssemblyState * assemblyStateNew(int maxLineLength){
     state->IC = 0;
     state->DC = 0;
     state->hasError = false;
-    state->symbols = symbolsSetNew();
+    state->symbols = symbolsTableNew("symbols");
+    state->externalSymbols = symbolsTableNew("externals");
     state->data = wordsVectorNew("data");
     state->instructions = wordsVectorNew("instructions");
     state->lineNumber = 0;
@@ -14,7 +15,8 @@ AssemblyState * assemblyStateNew(int maxLineLength){
 }
 
 void assemblyStateFree(AssemblyState * state){
-    symbolsSetFree(state->symbols);
+    symbolsTableFree(state->symbols);
+    symbolsTableFree(state->externalSymbols);
     wordsVectorFree(state->data);
     wordsVectorFree(state->instructions);
     free(state->line);

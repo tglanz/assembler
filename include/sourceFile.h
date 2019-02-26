@@ -14,8 +14,8 @@
 
 typedef FILE SourceFile;
 
-SourceFile * openSourceFile(const char * baseName);
+SourceFile * openSourceFile(string baseName);
 bool readLine(SourceFile * file, char * destination);
-bool isMeaningfulLine(const char * line);
+bool isMeaningfulLine(string line);
 
 #endif /* __SOURCE_FILE_H__ */

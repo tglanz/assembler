@@ -31,49 +31,49 @@ typedef enum {
 typedef union {
     Word word;
     struct {
-        unsigned int encodingType: 2;
-        unsigned int destinationAddressType: 3;
-        unsigned int opcode: 4;
-        unsigned int sourceAddressType: 3;
+        uint encodingType: 2;
+        uint destinationAddressType: 3;
+        uint opcode: 4;
+        uint sourceAddressType: 3;
     } fields;
 } InstructionWord;
 
 typedef union {
     Word word;
     struct {
-        unsigned int encodingType: 2;
-        unsigned int immediateValue: 10;
+        uint encodingType: 2;
+        uint immediateValue: 10;
     } fields;
 } ImmediateOperandWord;
 
 typedef union {
     Word word;
     struct {
-        unsigned int encodingType: 2;
-        unsigned int address: 10;
+        uint encodingType: 2;
+        uint address: 10;
     } fields;
 } DirectOperandWord;
 
 typedef union {
     Word word;
     struct {
-        unsigned int encodingType: 2;
-        unsigned int sourceRegister: 5;
-        unsigned int destinationRegister: 5;
+        uint encodingType: 2;
+        uint destinationRegister: 5;
+        uint sourceRegister: 5;
     } fields;
 } RegisterOperandWord;
 
 typedef struct {
-    const char * operation;
-    const unsigned int code;
-    const unsigned int addressTypes[2];
+    string operation;
+    const uint code;
+    const uint addressTypes[2];
 } InstructionModel;
 
-const InstructionModel * findInstructionModel(const char * operation);
-unsigned int getModelOperandsCount(const InstructionModel * model);
-OperandAddressType oeprandStringToAddressType(const char * argument);
+const InstructionModel * findInstructionModel(string operation);
+uint getModelOperandsCount(const InstructionModel * model);
+OperandAddressType oeprandStringToAddressType(string argument);
 int getDataWordsCount(OperandAddressType sourceAddressType, OperandAddressType destinationAddressType);
-int registerIndexFromArgumentString(const char * argumentString);
+int registerIndexFromArgumentString(string argumentString);
 bool isAvailableAddressType(OperandAddressType value, OperandAddressType bitflags);
 
 #endif /* __INSTRUCTIONS_H__ */
