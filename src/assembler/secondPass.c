@@ -3,21 +3,21 @@
 void secondPassHandleEntryDirective(AssemblyState * state) {
     char arguments[MAX_LINE_LENGTH];
     if (!tryGetDirectiveArgs(arguments, state->line)) {
-        logError("line %3d: invalid entry directive, expected an argument",
+        logError("@%-3d: invalid entry directive, expected an argument",
                  state->lineNumber);
         state->hasError = true;
         return;
     }
 
     if (!isValidLabel(arguments)){
-        logError("line %3d: unable to set entry for `%s`. it is not a valid label",
+        logError("@%-3d: unable to set entry for `%s`. it is not a valid label",
                  state->lineNumber, arguments);
         state->hasError = true;
         return;
     }
 
     if (!symbolsTableFlag(state->symbols, arguments, SYMBOL_FLAG_ENTRY)){
-        logError("line %3d: unable to set entry for `%s`. are you sure it exists?",
+        logError("@%-3d: unable to set entry for `%s`. are you sure it exists?",
                  state->lineNumber, arguments);
         state->hasError = true;
         return;
@@ -68,7 +68,7 @@ void handleOperationInSecondPass(AssemblyState * state, string operation, string
             switch (addressTypes[idx]){
                 case ADDRESS_TYPE_IMMEDIATE:
                     if (sscanf(argument, "%d", &value) != 1){
-                        logError("line %3d: expected immediate value, but failed to parse argument at position: %d",
+                        logError("@%-3d: expected immediate value, but failed to parse argument at position: %d",
                                  state->lineNumber, idx);
                         state->hasError = true;
                     } else {
@@ -80,7 +80,7 @@ void handleOperationInSecondPass(AssemblyState * state, string operation, string
                 case ADDRESS_TYPE_DIRECT:
                     symbol = symbolsTableFind(state->symbols, argument);
                     if (symbol == NULL){
-                        logError("line %3d: expected symbol, but it is not defined in the program (or extern). searched for `%s`",
+                        logError("@%-3d: expected symbol, but it is not defined in the program (or extern). searched for `%s`",
                                  state->lineNumber, argument);
                         state->hasError = true;
                     } else if (has_flag(SYMBOL_FLAG_EXTERNAL, symbol->flags)){
@@ -109,7 +109,7 @@ void handleOperationInSecondPass(AssemblyState * state, string operation, string
                     word = registerOperandWord.word;
                     break;
                 default:
-                    logError("line %3d: unknown address type: %d", state->lineNumber, addressTypes[idx]);
+                    logError("@%-3d: unknown address type: %d", state->lineNumber, addressTypes[idx]);
                     state->hasError = true;
             }
 
@@ -137,7 +137,7 @@ void runSecondPass(AssemblyState * state, SourceFile * sourceFile){
         /* remove the newline at the end */
         ++state->lineNumber;
 
-        logDebug("second pass, read line: line %3d: %s",
+        logDebug("second pass, read line: @%-3d: %s",
                  state->lineNumber, state->line);
 
         if (!isMeaningfulLine(state->line)){

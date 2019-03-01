@@ -6,14 +6,14 @@ void firstPassHandleExternDirective(AssemblyState * state){
     int argIndex = 0;
 
     if (!tryGetDirectiveArgs(arguments, state->line) || strlen(arguments) == 0){
-        logError("line %3d: missing arguments for extern directive", state->lineNumber);
+        logError("@%-3d: missing arguments for extern directive", state->lineNumber);
         state->hasError = true;
         return;
     }
     
     while (getSplitComponent(argument, arguments, " ", argIndex)){
         if (!symbolsTableInsert(state->symbols, SYMBOL_TYPE_NONE, argument, 0)){
-            logError("line %3d: cannot mark as external, already have symbol: `%s`",
+            logError("@%-3d: cannot mark as external, already have symbol: `%s`",
                      state->lineNumber, argument);
             state->hasError = true;
         } else {
@@ -27,21 +27,38 @@ void firstPassHandleStringDirective(AssemblyState * state){
     uint idx;
     Word word;
     char stringData[MAX_LINE_LENGTH];
+    bool isValid = false;
 
-    if (countCharacterOccurrences(state->line, 0, '\"') != 2){
-        logError("line %3d: invalid string directive, expected exactly one argument", state->lineNumber);
-        state->hasError = true;
+    if (!tryGetDirectiveArgs(stringData, state->line) || strlen(stringData) == 0){
+        logError("@%-3d: invalid string directive, expected arguments",
+                 state->lineNumber);
+    } else if (stringData[0] != '\"'){
+        logError("@%-3d: invalid string directive, first, and only argument must be a string. got: `%s`",
+                 state->lineNumber, stringData);
+    } else if (countCharacterOccurrences(state->line, 0, '\"') == 1) {
+        logError("@%-3d: invalid string directive, missing closing tag. got: `%s`",
+                 state->lineNumber, stringData);
+    } else if (countCharacterOccurrences(state->line, 0, '\"') > 2){
+        logError("@%-3d: invalid string directive, expected exactly one string argument. got: `%s`",
+                 state->lineNumber, stringData);
     } else {
-        getSplitComponent(stringData, state->line, "\"", 1);
-        for (idx = 0; idx < strlen(stringData); ++idx){
-            word.raw = stringData[idx];
-            wordsVectorAppend(state->data, word);
-        }
-
-        word.raw = 0;
-        wordsVectorAppend(state->data, word);
-        state->DC += strlen(stringData) + 1;
+        isValid = true;
     }
+
+    if (!isValid){
+        state->hasError = true;
+        return;
+    }
+    
+    getSplitComponent(stringData, state->line, "\"", 1);
+    for (idx = 0; idx < strlen(stringData); ++idx){
+        word.raw = stringData[idx];
+        wordsVectorAppend(state->data, word);
+    }
+
+    word.raw = 0;
+    wordsVectorAppend(state->data, word);
+    state->DC += strlen(stringData) + 1;
 }
 
 void firstPassHandleDataDirective(AssemblyState * state){
@@ -52,13 +69,13 @@ void firstPassHandleDataDirective(AssemblyState * state){
     Word word;
 
     if (!tryGetDirectiveArgs(arguments, state->line) || strlen(arguments) == 0){
-        logWarning("line %3d: no arguments for data directive, skipping", state->lineNumber);
+        logWarning("@%-3d: no arguments for data directive, skipping", state->lineNumber);
         return;
     }
 
     while (getSplitComponent(argument, arguments, ",", argIndex++)){
         if (sscanf(argument, "%d", &integer) != 1){
-            logError("line %3d: cannot parse argument `%s` to integer",
+            logError("@%-3d: cannot parse argument `%s` to integer",
                      state->lineNumber, argument);
             state->hasError = true;
             return;
@@ -84,7 +101,7 @@ bool setInstructionAddressTypes(
 
     /* compare the actual operands count to the model */
     if (operandsCount != getModelOperandsCount(instructionModel)){
-        logError("line %3d: invalid argument count for operation `%s`. expected %d",
+        logError("@%-3d: invalid argument count for operation `%s`. expected %d",
                  instructionModel->operation, operandsCount);
         return false;
     }
@@ -113,7 +130,7 @@ void firstPassHandleOperation(AssemblyState * state, string operation, string ar
 
     instructionModel = findInstructionModel(operation);
     if (instructionModel == NULL){
-        logError("line %3d: unknown operation: `%s`", operation);
+        logError("@%-3d: unknown operation: `%s`", operation);
         state->hasError = true;
         return;
     }
@@ -121,7 +138,7 @@ void firstPassHandleOperation(AssemblyState * state, string operation, string ar
     instructionWord.word.raw = 0;
 
     if (!setInstructionAddressTypes(state, instructionModel, &instructionWord, arguments)){
-        logError("line %3d: invalid operand address types", state->lineNumber);
+        logError("@%-3d: invalid operand address types", state->lineNumber);
         state->hasError = true;
         return;
     }
@@ -166,7 +183,7 @@ void runFirstPass(AssemblyState * state, SourceFile * sourceFile){
 
     while (readLine(sourceFile, state->line)){
         ++state->lineNumber;
-        logDebug("first pass, read line: line %3d: %s", state->lineNumber, state->line);
+        logDebug("first pass, read line: %d: `%s`", state->lineNumber, state->line);
 
         if (!isMeaningfulLine(state->line)){
             continue;
@@ -175,10 +192,10 @@ void runFirstPass(AssemblyState * state, SourceFile * sourceFile){
         hasLabel = tryGetLabel(label, state->line);
         if (hasLabel && !isValidLabel(label)){
             if (strlen(label) > 0 && isWhitespaceCharacter(label[0])){
-                logError("line %3d: invalid label, got: `%s`. hint: labels must not start with a whitespace!",
+                logError("@%-3d: invalid label, got: `%s`. hint: labels must not start with a whitespace!",
                          state->lineNumber, label);
             } else {
-                logError("line %3d: invalid label, got: `%s`", state->lineNumber, label);
+                logError("@%-3d: invalid label, got: `%s`", state->lineNumber, label);
             }
             state->hasError = true;
             continue;
@@ -188,7 +205,7 @@ void runFirstPass(AssemblyState * state, SourceFile * sourceFile){
             switch (directiveTypeFromString(directive)){
                 case DIRECTIVE_TYPE_ENTRY:
                     if (hasLabel) {
-                        logWarning("line %3d: entry directive should not have a label. got label `%s`",
+                        logWarning("@%-3d: entry directive should not have a label. got label `%s`",
                                    state->lineNumber, label);
                     }
                     break;
@@ -206,17 +223,17 @@ void runFirstPass(AssemblyState * state, SourceFile * sourceFile){
                     firstPassHandleDataDirective(state);
                     break;
                 case DIRECTIVE_TYPE_INVALID:
-                    logError("line %3d: invalid directive: `%s`", state->lineNumber, directive);
+                    logError("@%-3d: invalid directive: `%s`", state->lineNumber, directive);
                     state->hasError = true;
                     break;
             }
         } else if (tryGetOperation(operation, operationArguments, state->line, hasLabel)){
             if (hasLabel && !symbolsTableInsert(state->symbols, SYMBOL_TYPE_CODE, label, state->IC + INSTRUCTIONS_OFFSET)){
-                logWarning("line %3d: already have symbol `%s`, ignoring", state->lineNumber, label);
+                logWarning("@%-3d: already have symbol `%s`, ignoring", state->lineNumber, label);
             }
             firstPassHandleOperation(state, operation, operationArguments);
         } else {
-            logError("line %3d: unknown error, unable to parse", state->lineNumber);
+            logError("@%-3d: unknown error, unable to parse", state->lineNumber);
             state->hasError = true;
         }
     }

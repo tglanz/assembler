@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/bin/assembler.exe",
             "args": [
                 "-v0",
-                "data/ps2/ps"
+                "data/invalid-strings"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

@@ -47,16 +47,17 @@ bool isNumericCharacter(char character){
 }
 
 bool tryGetLabel(char * destination, string line) {
-    if (untilCharacterExclusive(destination, line, ':')){
-        return true;
-    }
-    return false;
+    return untilCharacterExclusive(destination, line, ':');
 }
 
 bool tryGetDirective(char * destination, string line){
-    return fromCharacterInclusive(destination, line, '.') &&
-           untilCharacterExclusive(destination, destination, ' ') &&
-           fromIndexInclusive(destination, destination, 1);
+    if (!fromCharacterInclusive(destination, line, '.')){
+        return false;
+    }
+
+    fromIndexInclusive(destination, destination, 1);
+    untilCharacterExclusive(destination, destination, ' ');
+    return true;
 }
 
 bool tryGetDirectiveArgs(char * destination, string line){
