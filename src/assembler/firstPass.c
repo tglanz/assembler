@@ -70,7 +70,7 @@ void firstPassHandleDataDirective(AssemblyState * state){
     }
 }
 
-void setInstructionAddressTypes(
+bool setInstructionAddressTypes(
     AssemblyState * state, const InstructionModel * instructionModel, InstructionWord * instructionWord, string arguments){
     int idx, operandsCount;
     char argument[MAX_LINE_LENGTH];
@@ -86,8 +86,7 @@ void setInstructionAddressTypes(
     if (operandsCount != getModelOperandsCount(instructionModel)){
         logError("line %3d: invalid argument count for operation `%s`. expected %d",
                  instructionModel->operation, operandsCount);
-        state->hasError = true;
-        return;
+        return false;
     }
 
     /**
@@ -103,6 +102,8 @@ void setInstructionAddressTypes(
             instructionWord->fields.sourceAddressType = oeprandStringToAddressType(argument);
         }
     }    
+
+    return true;
 }
 
 void firstPassHandleOperation(AssemblyState * state, string operation, string arguments) {
@@ -119,9 +120,9 @@ void firstPassHandleOperation(AssemblyState * state, string operation, string ar
 
     instructionWord.word.raw = 0;
 
-    setInstructionAddressTypes(state, instructionModel, &instructionWord, arguments);
-    if (state->hasError){
+    if (!setInstructionAddressTypes(state, instructionModel, &instructionWord, arguments)){
         logError("line %3d: invalid operand address types", state->lineNumber);
+        state->hasError = true;
         return;
     }
 
