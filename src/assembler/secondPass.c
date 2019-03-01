@@ -24,7 +24,7 @@ void secondPassHandleEntryDirective(AssemblyState * state) {
     }
 }
 
-void handleOperationInSecondPass(AssemblyState * state, string operation, string arguments){
+void secondPassHandleOperation(AssemblyState * state, string operation, string arguments){
     int idx, operandsCount, value;
     const InstructionModel * instructionModel;
     char argument[MAX_LINE_LENGTH];
@@ -137,9 +137,7 @@ void runSecondPass(AssemblyState * state, SourceFile * sourceFile){
         /* remove the newline at the end */
         ++state->lineNumber;
 
-        logDebug("second pass, read line: @%-3d: %s",
-                 state->lineNumber, state->line);
-
+        logDebug("second pass, read line: %d: `%s`", state->lineNumber, state->line);
         if (!isMeaningfulLine(state->line)){
             continue;
         }
@@ -151,7 +149,7 @@ void runSecondPass(AssemblyState * state, SourceFile * sourceFile){
                 secondPassHandleEntryDirective(state);
             }
         } else if (tryGetOperation(operation, arguments, state->line, hasLabel)){
-            handleOperationInSecondPass(state, operation, arguments);
+            secondPassHandleOperation(state, operation, arguments);
         }
     }
 }
