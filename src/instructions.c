@@ -87,6 +87,8 @@ const InstructionModel INSTRUCTIONS_TABLE[] = {
 
 const InstructionModel * findInstructionModel(string operation){
     int idx;
+
+    /* just search for a model with the same name as operation */
     for (idx = 0; idx < sizeof(INSTRUCTIONS_TABLE) / sizeof(InstructionModel); ++idx){
         if (strcmp(operation, INSTRUCTIONS_TABLE[idx].operation) == 0){
             return &INSTRUCTIONS_TABLE[idx];
@@ -105,25 +107,36 @@ uint getModelOperandsCount(const InstructionModel * model){
 OperandAddressType oeprandStringToAddressType(string argument){
     int tmp;
 
+    /* detect the format of the argument */
+
     if (strlen(argument) != 0){
+
+        /* if register, should start with @r */
         if (substringIndex(argument, REGISTER_ADDRESS_PREFIX) == 0){
+            /* TODO: what about @rbcd for example */
             return ADDRESS_TYPE_REGISTER;
         }
 
+        /* if its a number, its an immediate */
         if (sscanf(argument, "%d", &tmp) == 1){
             return ADDRESS_TYPE_IMMEDIATE;
         }
 
+        /* can it refer to a label? */
         if (isValidLabel(argument)){
+            /* its direct */
             return ADDRESS_TYPE_DIRECT;
         }
     }
 
+    /* no valid result */
     return ADDRESS_TYPE_NONE;
 }
 
 uint getDataWordsCount(OperandAddressType sourceAddressType, OperandAddressType destinationAddressType){
     int count = 0;
+
+    /* count how many data words required according the the address types */
 
     if (sourceAddressType != ADDRESS_TYPE_NONE){
         ++count;
@@ -140,6 +153,8 @@ uint getDataWordsCount(OperandAddressType sourceAddressType, OperandAddressType 
 
 uint registerIndexFromArgumentString(string argumentString){
     uint registerIndex;
+
+    /* try parse it as @r{number} */
     if (sscanf(argumentString + strlen(REGISTER_ADDRESS_PREFIX), "%u", &registerIndex) != 1 ||
         registerIndex < REGISTER_MIN ||
         registerIndex > REGISTER_MAX){
