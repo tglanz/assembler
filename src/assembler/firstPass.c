@@ -5,18 +5,21 @@ void firstPassHandleExternDirective(AssemblyState * state){
     char argument[MAX_LINE_LENGTH];
     int argIndex = 0;
 
+    /* get the labels the directive refers to */
     if (!tryGetDirectiveArgs(arguments, state->line) || strlen(arguments) == 0){
         logError("@%-3d: missing arguments for extern directive", state->lineNumber);
         state->hasError = true;
         return;
     }
     
+    /* iterate the labels to be externed */
     while (getSplitComponent(argument, arguments, " ", argIndex)){
         if (!symbolsTableInsert(state->symbols, SYMBOL_TYPE_NONE, argument, 0)){
             logError("@%-3d: cannot mark as external, already have symbol: `%s`",
                      state->lineNumber, argument);
             state->hasError = true;
         } else {
+            /* set relevant flags */
             symbolsTableFlag(state->symbols, argument, SYMBOL_FLAG_EXTERNAL);
         }
         ++argIndex;
@@ -29,6 +32,7 @@ void firstPassHandleStringDirective(AssemblyState * state){
     char stringData[MAX_LINE_LENGTH];
     bool isValid = false;
 
+    /* detect issues */
     if (!tryGetDirectiveArgs(stringData, state->line) || strlen(stringData) == 0){
         logError("@%-3d: invalid string directive, expected arguments",
                  state->lineNumber);
@@ -50,12 +54,14 @@ void firstPassHandleStringDirective(AssemblyState * state){
         return;
     }
     
+    /* no issues thus far, break the string into words and add them to the data */
     getSplitComponent(stringData, state->line, "\"", 1);
     for (idx = 0; idx < strlen(stringData); ++idx){
         word.raw = stringData[idx];
         wordsVectorAppend(state->data, word);
     }
 
+    /* append null terminator */
     word.raw = 0;
     wordsVectorAppend(state->data, word);
     state->DC += strlen(stringData) + 1;
@@ -68,11 +74,13 @@ void firstPassHandleDataDirective(AssemblyState * state){
     int integer;
     Word word;
 
+    /* extract the arguments of the directive */
     if (!tryGetDirectiveArgs(arguments, state->line) || strlen(arguments) == 0){
         logWarning("@%-3d: no arguments for data directive, skipping", state->lineNumber);
         return;
     }
 
+    /* iterate all argument values, and add them to the data */
     while (getSplitComponent(argument, arguments, ",", argIndex++)){
         if (sscanf(argument, "%d", &integer) != 1){
             logError("@%-3d: cannot parse argument `%s` to integer",
@@ -91,6 +99,9 @@ bool setInstructionAddressTypes(
     AssemblyState * state, const InstructionModel * instructionModel, InstructionWord * instructionWord, string arguments){
     int idx, operandsCount;
     char argument[MAX_LINE_LENGTH];
+    OperandAddressType addressType;
+
+    /* Set the instruction address types fields, according to the arguments of an operation */
     
     /* check the actual arguments given */
     if (strlen(arguments) == 0){
@@ -113,10 +124,19 @@ bool setInstructionAddressTypes(
     for (idx = 0; idx < operandsCount; ++idx){
         /* get the argument */
         getSplitComponent(argument, arguments, ",", idx);
+        addressType = oeprandStringToAddressType(argument);
+
+        if (addressType == ADDRESS_TYPE_NONE){
+            logError("@%-3d: invalid argument `%s`, unknown address type, arguments: `%s`",
+                        state->lineNumber, argument, arguments);
+            return false;
+        }
+
         if (idx == 1 || instructionModel->addressTypes[0] == ADDRESS_TYPE_NONE){
-            instructionWord->fields.destinationAddressType = oeprandStringToAddressType(argument);
+            instructionWord->fields.destinationAddressType = addressType;
+            
         } else if (idx == 0){
-            instructionWord->fields.sourceAddressType = oeprandStringToAddressType(argument);
+            instructionWord->fields.sourceAddressType = addressType;
         }
     }    
 
@@ -128,6 +148,9 @@ void firstPassHandleOperation(AssemblyState * state, string operation, string ar
     InstructionWord instructionWord;
     int idx, dataWordsCount;
 
+    /* handle a line of operation */
+
+    /* acquire the model of the opration */
     instructionModel = findInstructionModel(operation);
     if (instructionModel == NULL){
         logError("@%-3d: unknown operation: `%s`", operation);
@@ -135,22 +158,25 @@ void firstPassHandleOperation(AssemblyState * state, string operation, string ar
         return;
     }
 
+    /* start constructing the instruction */
     instructionWord.word.raw = 0;
 
+    /* set address types */
     if (!setInstructionAddressTypes(state, instructionModel, &instructionWord, arguments)){
         logError("@%-3d: invalid operand address types", state->lineNumber);
         state->hasError = true;
         return;
     }
 
+    /* append instruction, and placholders for operands to the instructions */
     instructionWord.fields.opcode = instructionModel->code;
-    wordsVectorAppend(state->instructions, instructionWord.word);
+    wordsVectorAppend(state->code, instructionWord.word);
 
     dataWordsCount = getDataWordsCount(instructionWord.fields.sourceAddressType,
                                        instructionWord.fields.destinationAddressType);
     for (idx = 0; idx < dataWordsCount; ++idx){
         instructionWord.word.raw = 0;
-        wordsVectorAppend(state->instructions, instructionWord.word);
+        wordsVectorAppend(state->code, instructionWord.word);
     }
 
     state->IC += 1 + dataWordsCount;
@@ -160,6 +186,9 @@ void updateDataSymbolsWithInstructionsCounter(AssemblyState * state) {
     uint idx, newValue;
     Symbol * symbol;
 
+    /** for all data symbols,
+     * increment their addresses according to the instructions counter
+     */
     for (idx = 0; idx < state->symbols->size; ++idx){
         symbol = &state->symbols->data[idx];
         if (symbol->type == SYMBOL_TYPE_DATA){
@@ -181,6 +210,10 @@ void runFirstPass(AssemblyState * state, SourceFile * sourceFile){
     /* Defaults */
     state->lineNumber = 0;
 
+    /**
+     * Read all lines in the file, and detect the type - oepration or directive
+     * Handle each one seperately
+     */
     while (readLine(sourceFile, state->line)){
         ++state->lineNumber;
         logDebug("first pass, read line: %d: `%s`", state->lineNumber, state->line);
@@ -189,6 +222,7 @@ void runFirstPass(AssemblyState * state, SourceFile * sourceFile){
             continue;
         }
 
+        /* extract labels from the line */
         hasLabel = tryGetLabel(label, state->line);
         if (hasLabel && !isValidLabel(label)){
             if (strlen(label) > 0 && isWhitespaceCharacter(label[0])){
@@ -202,6 +236,7 @@ void runFirstPass(AssemblyState * state, SourceFile * sourceFile){
         }
 
         if (tryGetDirective(directive, state->line)){
+            /* classify directive and handle it */
             switch (directiveTypeFromString(directive)){
                 case DIRECTIVE_TYPE_ENTRY:
                     if (hasLabel) {
@@ -228,17 +263,20 @@ void runFirstPass(AssemblyState * state, SourceFile * sourceFile){
                     break;
             }
         } else if (tryGetOperation(operation, operationArguments, state->line, hasLabel)){
+            /* handle the operation line */
             if (hasLabel && !symbolsTableInsert(state->symbols, SYMBOL_TYPE_CODE, label, state->IC + INSTRUCTIONS_OFFSET)){
                 logWarning("@%-3d: already have symbol `%s`, ignoring", state->lineNumber, label);
             }
             firstPassHandleOperation(state, operation, operationArguments);
         } else {
+            /* invalid line, hopefuly we don't have a parsing bug */
             logError("@%-3d: unknown error, unable to parse", state->lineNumber);
             state->hasError = true;
         }
     }
 
     if (!state->hasError){
+        /* update all of the data symbols, to match the references according to the instructions state */
         updateDataSymbolsWithInstructionsCounter(state);
     }
 }

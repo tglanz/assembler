@@ -106,7 +106,7 @@ OperandAddressType oeprandStringToAddressType(string argument){
     int tmp;
 
     if (strlen(argument) != 0){
-        if (argument[0] == REGISTER_ADDRESS_PREFIX){
+        if (substringIndex(argument, REGISTER_ADDRESS_PREFIX) == 0){
             return ADDRESS_TYPE_REGISTER;
         }
 
@@ -122,7 +122,7 @@ OperandAddressType oeprandStringToAddressType(string argument){
     return ADDRESS_TYPE_NONE;
 }
 
-int getDataWordsCount(OperandAddressType sourceAddressType, OperandAddressType destinationAddressType){
+uint getDataWordsCount(OperandAddressType sourceAddressType, OperandAddressType destinationAddressType){
     int count = 0;
 
     if (sourceAddressType != ADDRESS_TYPE_NONE){
@@ -138,9 +138,9 @@ int getDataWordsCount(OperandAddressType sourceAddressType, OperandAddressType d
     return count;
 }
 
-int registerIndexFromArgumentString(string argumentString){
-    int registerIndex;
-    if (sscanf(argumentString + REGISTER_ARGUMENT_INDEX_OFFSET, "%d", &registerIndex) != 1 ||
+uint registerIndexFromArgumentString(string argumentString){
+    uint registerIndex;
+    if (sscanf(argumentString + strlen(REGISTER_ADDRESS_PREFIX), "%u", &registerIndex) != 1 ||
         registerIndex < REGISTER_MIN ||
         registerIndex > REGISTER_MAX){
 
@@ -148,8 +148,4 @@ int registerIndexFromArgumentString(string argumentString){
     }
 
     return registerIndex;
-}
-
-bool isAvailableAddressType(OperandAddressType value, OperandAddressType bitflags){
-    return (value & bitflags) == value;
 }

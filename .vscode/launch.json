@@ -11,7 +11,7 @@
             "program": "${workspaceFolder}/bin/assembler.exe",
             "args": [
                 "-v0",
-                "data/invalid-strings"
+                "data/invalid-operations"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",

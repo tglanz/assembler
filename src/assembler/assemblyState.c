@@ -8,7 +8,7 @@ AssemblyState * assemblyStateNew(int maxLineLength){
     state->symbols = symbolsTableNew("symbols");
     state->externalSymbols = symbolsTableNew("externals");
     state->data = wordsVectorNew("data");
-    state->instructions = wordsVectorNew("instructions");
+    state->code = wordsVectorNew("instructions");
     state->lineNumber = 0;
     state->line = (char*)calloc(maxLineLength, sizeof(char));
     return state;
@@ -18,6 +18,6 @@ void assemblyStateFree(AssemblyState * state){
     symbolsTableFree(state->symbols);
     symbolsTableFree(state->externalSymbols);
     wordsVectorFree(state->data);
-    wordsVectorFree(state->instructions);
+    wordsVectorFree(state->code);
     free(state->line);
 }

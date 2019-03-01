@@ -7,14 +7,17 @@ bool assembleInput(string baseName) {
     AssemblyState * state;
     bool success = false;
 
+    /* open file */
     sourceFile = openSourceFile(baseName);
     if (sourceFile == NULL){
         logError("Could not open source file %s. Aborting", baseName);
         return false;
     }
 
+    /* initialize state */
     state = assemblyStateNew(MAX_LINE_LENGTH);
 
+    /* run the passes */
     runFirstPass(state, sourceFile);
     if (!state->hasError){
         /* rewind file */
@@ -22,8 +25,10 @@ bool assembleInput(string baseName) {
         runSecondPass(state, sourceFile);
     }
 
+    /* cleanup */
     fclose(sourceFile);
     if (!state->hasError){
+        /* only if there are no errors we want to generate outputs */
         generateOutputs(state, baseName);
     }
 
@@ -35,6 +40,7 @@ bool assembleInput(string baseName) {
 
 
 void generateOutputs(AssemblyState * state, string baseName){
+    /* go through all outputs and generate them */
     generateEntriesFile(baseName, state);
     generateExternalsFile(baseName, state);
     generateObjectFile(baseName, state);
