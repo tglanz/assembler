@@ -11,7 +11,7 @@ bool readLine(FILE * file, char * destination){
         if (character == '\t'){
             /*
                 we can just normalize tabs, transforming them into spaces.
-                hopefully, we can reduce some checks
+                hopefully, we can reduce some checks later on
             */
             character = ' ';
         }

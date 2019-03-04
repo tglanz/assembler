@@ -5,6 +5,11 @@ void symbolsTableGrowAccordingly(SymbolsTable * table){
     uint idx;
     Symbol * data;
 
+    /**
+     * Basically, if size reaches the capacity re-allocate and copy current values
+     * to new addresses in memory
+     */
+
     if (table != NULL){
         if (table->size == table->capacity){
             if (table->capacity == 0){
@@ -81,6 +86,7 @@ Symbol * symbolsTableGet(SymbolsTable * table, uint idx) {
 }
 
 Symbol * symbolsTableFind(SymbolsTable * table, string key){
+    /* iterate through all symbols until exhausted or found a symbol with the same key */
     uint idx;
     for (idx = 0; idx < table->size; ++idx){
         if (strcmp(table->data[idx].key, key) == 0){
@@ -91,6 +97,7 @@ Symbol * symbolsTableFind(SymbolsTable * table, string key){
 }
 
 bool symbolsTableFlag(SymbolsTable * table, string key, uint flag) {
+    /* modify the flags of a given symbol */
     Symbol * symbol = symbolsTableFind(table, key);
     if (symbol != NULL){
         set_flag(flag, &symbol->flags);

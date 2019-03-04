@@ -5,6 +5,11 @@ void wordsVectorGrowAccordingly(WordsVector * vector){
     int idx;
     Word * data;
 
+    /**
+     * Basically, if size reaches the capacity re-allocate and copy current values
+     * to new addresses in memory
+     */
+
     if (vector != NULL){
         if (vector->size == vector->capacity){
             if (vector->capacity == 0){
