@@ -1,5 +1,11 @@
 #include "stringUtils.h"
 
+char * strdup(string source){
+    char * duplicated = (char*)malloc(strlen(source) + 1);
+    strcpy(duplicated, source);
+    return duplicated;
+}
+
 bool getSplitComponent(char * destination, string source, string delimiters, int componentIndex){
     char *duplicated, *component;
     duplicated = strdup(source);

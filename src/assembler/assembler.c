@@ -10,7 +10,7 @@ bool assembleInput(string baseName) {
     /* open file */
     sourceFile = openSourceFile(baseName);
     if (sourceFile == NULL){
-        logError("Could not open source file %s. Aborting", baseName);
+        logError("Could not open source file `%s`", baseName);
         return false;
     }
 

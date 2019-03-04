@@ -19,6 +19,7 @@
 #include "core.h"
 #include "log.h"
 #include "bitflags.h"
+#include "stringUtils.h"
 
 /* The capacity of newly created SymbolsTable */
 #define SYMBOLS_TABLE_INITIAL_CAPACITY (4)

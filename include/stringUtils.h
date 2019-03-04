@@ -34,6 +34,17 @@
 #include "stringUtils.h"
 
 /**
+ * Duplicates a given string
+ *
+ * Arguments
+ *      source: string - the string to duplicate
+ *
+ * Returns
+ *      char* - duplicated string, which was dynamically allocated
+ */
+char * strdup(string source);
+
+/**
  * Split a given string into components according to delimiters, and will provide a specific one
  * 
  * Arguments
