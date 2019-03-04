@@ -113,7 +113,6 @@ OperandAddressType oeprandStringToAddressType(string argument){
 
         /* if register, should start with @r */
         if (substringIndex(argument, REGISTER_ADDRESS_PREFIX) == 0){
-            /* TODO: what about @rbcd for example */
             return ADDRESS_TYPE_REGISTER;
         }
 

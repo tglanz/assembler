@@ -6,9 +6,11 @@
 #include "assembler/assembler.h"
 
 int main(int argc, char ** argv){
-    bool someFailed = false;
+    /* declerations */
+    bool someFailed = false; /* keep track on whether he encountered failures */
     int idx, tmp;
 
+    /* iterate through arguments and delegate required actions */
     for (idx = 1; idx < argc; ++idx){
         if (sscanf(argv[idx], "-v%d", &tmp) == 1){
             logSetLevel(tmp);
@@ -21,6 +23,7 @@ int main(int argc, char ** argv){
         }
     }
 
+    /* provide a summary, return valid exit codes */
     if (someFailed){
         logWarning("Done, one or more inputs had failed to compile");
         return EXIT_CODE_UNKNOWN;

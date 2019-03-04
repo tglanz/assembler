@@ -1,9 +1,11 @@
 #include "parsing.h"
 
+/* The whitespaces */
 const char WHITSPACES[] = { ' ', '\t', '\n' };
 const int WHITSPACES_COUNT = sizeof(WHITSPACES) / sizeof(char);
 
 DirectiveType directiveTypeFromString(string directiveString){
+    /* just check what the string is, return the appropriate value */
     if (strcmp(directiveString, "data") == 0){
         return DIRECTIVE_TYPE_DATA;
     } else if (strcmp(directiveString, "string") == 0){
@@ -18,7 +20,8 @@ DirectiveType directiveTypeFromString(string directiveString){
 }
 
 bool isWhitespaceCharacter(char character){
-    int idx;
+    /* iterate through whitespaces, is character one of those? */
+    uint idx;
     for (idx = 0; idx < WHITSPACES_COUNT; ++idx){
         if (character == WHITSPACES[idx]){
             return true;
@@ -28,6 +31,7 @@ bool isWhitespaceCharacter(char character){
 }
 
 bool isWhitespaceLine(string line){
+    /* foreach character, is it a whitespace? */
     int cursor = strlen(line);
     while (--cursor >= 0){
         if (!isWhitespaceCharacter(line[cursor])){
@@ -38,19 +42,23 @@ bool isWhitespaceLine(string line){
 }
 
 bool isAlphabeticalCharacter(char character, bool includeLowerCase, bool includeUpperCase){
+    /* ascii characters are linearly mapped, check if in relevant range */
     return (includeLowerCase && character >= 'a' && character <= 'z') ||
            (includeUpperCase && character >= 'A' && character <= 'Z');
 }
 
 bool isNumericCharacter(char character){
+    /* ascii characters are linearly mapped, check if in relevant range */
     return character >= '0' && character <= '9';
 }
 
 bool tryGetLabel(char * destination, string line) {
+    /* a label can only exist up to a ':' character */
     return untilCharacterExclusive(destination, line, ':');
 }
 
 bool tryGetDirective(char * destination, string line){
+    /* a directive is a non-empty string, from '.' character to a whitespace */
     if (!fromCharacterInclusive(destination, line, '.')){
         return false;
     }
@@ -61,6 +69,7 @@ bool tryGetDirective(char * destination, string line){
 }
 
 bool tryGetDirectiveArgs(char * destination, string line){
+    /* directive args can appear from the next non whitespace after a directive */
     if (fromCharacterInclusive(destination, line, '.') && fromCharacterInclusive(destination, destination, ' ')){
         trimStart(destination, destination);
         trimRepeatedCharacter(destination, destination, ' ');
@@ -70,7 +79,7 @@ bool tryGetDirectiveArgs(char * destination, string line){
 }
 
 bool tryGetOperation(char * destinationOperation, char * destinationArguments, string line, bool hasLabel){
-    int idx;
+    uint idx;
     char tmp[MAX_LINE_LENGTH];
 
     strcpy(tmp, line);
@@ -109,8 +118,6 @@ bool isValidLabel(string label){
     if (directiveTypeFromString(label) != DIRECTIVE_TYPE_INVALID){
         return false;
     }
-
-    /* TODO: check if as operation */
 
     /* for all characters except the first */
     while (--size > 0){

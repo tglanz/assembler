@@ -37,6 +37,12 @@ void logSetLevel(LogLevel level){
 
 void writeHeader(LogLevel logLevel){
 
+    /**
+     * write an entry header according to the log level
+     * should be something of the form
+     *      {time} [{level}] {message}
+     */
+
     string header; 
     time_t raw;
     struct tm * timeInfo;
@@ -62,11 +68,13 @@ void writeHeader(LogLevel logLevel){
     time(&raw);
     timeInfo = localtime(&raw);
 
+    /* print the time */
     printf("%02d:%02d:%02d ",
         timeInfo->tm_hour,
         timeInfo->tm_min,
         timeInfo->tm_sec);
 
+    /* print the header, with color if possible */
     logSetTerminalColor(logLevel);
     printf("[%s] ", header);
     logResetTerminalColor();
@@ -75,6 +83,7 @@ void writeHeader(LogLevel logLevel){
 void logDebug(string fmt, ...) {
     va_list args;
     if (LOG_LEVEL_DEBUG >= gLogLevel){
+        /* just proxy to printf, with relevant header */
         writeHeader(LOG_LEVEL_DEBUG);
         va_start(args, fmt);
         vprintf(fmt, args);
@@ -86,6 +95,7 @@ void logDebug(string fmt, ...) {
 void logInfo(string fmt, ...) {
     va_list args;
     if (LOG_LEVEL_INFO >= gLogLevel){
+        /* just proxy to printf, with relevant header */
         writeHeader(LOG_LEVEL_INFO);
         va_start(args, fmt);
         vprintf(fmt, args);
@@ -97,6 +107,7 @@ void logInfo(string fmt, ...) {
 void logWarning(string fmt, ...) {
     va_list args;
     if (LOG_LEVEL_WARNING >= gLogLevel){
+        /* just proxy to printf, with relevant header */
         writeHeader(LOG_LEVEL_WARNING);
         va_start(args, fmt);
         vprintf(fmt, args);
@@ -108,6 +119,7 @@ void logWarning(string fmt, ...) {
 void logError(string fmt, ...) {
     va_list args;
     if (LOG_LEVEL_ERROR >= gLogLevel){
+        /* just proxy to printf, with relevant header */
         writeHeader(LOG_LEVEL_ERROR);
         va_start(args, fmt);
         vprintf(fmt, args);

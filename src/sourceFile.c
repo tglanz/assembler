@@ -8,6 +8,13 @@ bool readLine(FILE * file, char * destination){
     int character;
     int idx = 0;
     while ((character = fgetc(file)) != EOF && character != '\n'){
+        if (character == '\t'){
+            /*
+                we can just normalize tabs, transforming them into spaces.
+                hopefully, we can reduce some checks
+            */
+            character = ' ';
+        }
         destination[idx] = character;
         ++idx;
     }
